@@ -24,9 +24,13 @@ import subprocess
 import socket
 import os
 import argparse
-import avalon
+try:
+    import avalon_framework as avalon
+except ImportError:
+    print('\033[31m' + 'Avalon Framework Not Found!')
+    print('Use ' + '\033[0m' + '"sudo pip3 install avalon_framework" ' + '\033[31m' + 'to install' + '\033[0m')
 
-VERSION = '1.3.1'
+VERSION = '1.3.2'
 
 
 # -------------------------------- Functions
