@@ -29,8 +29,9 @@ try:
 except ImportError:
     print('\033[31m' + 'Avalon Framework Not Found!')
     print('Use ' + '\033[0m' + '"sudo pip3 install avalon_framework" ' + '\033[31m' + 'to install' + '\033[0m')
+    exit(0)
 
-VERSION = '1.3.2'
+VERSION = '1.3.3'
 
 
 # -------------------------------- Functions
@@ -146,9 +147,9 @@ def internet_connected():
     except socket.error:
         print(avalon.FG.R + 'Google No Respond' + avalon.FM.RST)
         try:
-            print(avalon.FG.Y + '[+] INFO: ' + avalon.FG.W + 'Checking Internet to DNS.......' + avalon.FG.RST, end='')
+            print(avalon.FG.Y + '[+] INFO: ' + avalon.FG.W + 'Checking Internet to DNS.......' + avalon.FM.RST, end='')
             socket.create_connection(('8.8.8.8', 53), 5)  # Test connection by connecting to google
-            print(avalon.FG.G + avalon.FM.BD + 'OK!' + avalon.FG.RST)
+            print(avalon.FG.G + avalon.FM.BD + 'OK!' + avalon.FM.RST)
             return True
         except socket.error:
             print(avalon.FG.R + 'Server Timed Out!' + avalon.FM.RST)
