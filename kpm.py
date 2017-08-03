@@ -20,18 +20,53 @@ Description: KPM is an automatic apt management system
 """
 
 from __future__ import print_function
-import subprocess
-import socket
-import os
 import argparse
+import os
+import socket
+import subprocess
+import sys
+
 try:
     import avalon_framework as avalon
 except ImportError:
-    print('\033[31m' + 'Avalon Framework Not Found!')
-    print('Use ' + '\033[0m' + '"sudo pip3 install avalon_framework" ' + '\033[31m' + 'to install' + '\033[0m')
-    exit(0)
+    while True:
+        install = input('\033[31m\033[1mAVALON Framework not installed! Install now? [Y/n] \033[0m')
+        if len(install) == 0 or install[0].upper() == 'Y':
+            try:
+                if os.path.isfile('/usr/bin/pip3'):
+                    print('Installing using method 1')
+                    os.system('pip3 install avalon_framework')
+                elif os.path.isfile('/usr/bin/wget'):
+                    print('Installing using method 2')
+                    os.system('wget -O - https://bootstrap.pypa.io/get-pip.py | python3')
+                    os.system('pip3 install avalon_framework')
+                else:
+                    print('Installing using method 3')
+                    import urllib.request
+                    content = urllib.request.urlopen('https://bootstrap.pypa.io/get-pip.py')
+                    with open('/tmp/get-pip.py', 'w') as getpip:
+                        getpip.write(content.read().decode())
+                        getpip.close()
+                    os.system('python3 /tmp/get-pip.py')
+                    os.system('pip3 install avalon_framework')
+                    os.remove('/tmp/get-pip.py')
+            except Exception as e:
+                print('\033[31mInstallation failed!: ' + str(e))
+                print('Please check your Internet connectivity')
+                exit(0)
+            print('\033[32mInstallation Succeed!\033[0m')
+            print('\033[32mPlease restart the program\033[0m')
+            exit(0)
+        elif install[0].upper() == 'N':
+            print('\033[31m\033[1mSCUTUMM requires avalon framework to run!\033[0m')
+            print('\033[33mAborting..\033[0m')
+            exit(0)
+        else:
+            print('\033[31m\033[1mInvalid Input!\033[0m')
 
-VERSION = '1.3.3'
+VERSION = '1.4.0'
+
+ImportList = []
 
 
 # -------------------------------- Functions
@@ -45,7 +80,7 @@ def icon():
     print(avalon.FM.BD + avalon.FG.R + ' | \' /   ' + avalon.FG.G + '| |_) | ' + avalon.FG.M + '| |\/| |' + avalon.FG.W)
     print(avalon.FM.BD + avalon.FG.R + ' | . \   ' + avalon.FG.G + '|  __/  ' + avalon.FG.M + '| |  | |' + avalon.FG.W)
     print(avalon.FM.BD + avalon.FG.R + ' |_|\_\  ' + avalon.FG.G + '|_|     ' + avalon.FG.M + '|_|  |_|' + avalon.FG.W)
-    print(avalon.FM.BD + '\n K4YT3X Package Manager ' + avalon.FG.LY + avalon.FM.BD + VERSION + ' \n' + avalon.FG.W)
+    print(avalon.FM.BD + '\n K4YT3X Package Manager ' + avalon.FG.LY + avalon.FM.BD + VERSION + ' \n' + avalon.FM.RST)
 
 
 def process_arguments():
@@ -59,6 +94,7 @@ def process_arguments():
     action_group.add_argument("-s", "--search", help="search for package in apt cache", action="store", default=False)
     action_group.add_argument("-v", "--version", help="show package versions", action="store", default=False)
     action_group.add_argument("-a", "--autoremove", help="APT autoremove extra packages", action="store_true", default=False)
+    action_group.add_argument("--installkpm", help="Install KPM to system", action="store_true", default=False)
 
     args = parser.parse_args()
 
@@ -90,7 +126,17 @@ def dist_upgrade_safe():
 
 
 def update():
-    os.system('apt update')
+    global ImportList
+    output = ''
+    process = subprocess.Popen(['apt', 'update'], stdout=subprocess.PIPE)
+    for c in iter(lambda: process.stdout.read(1), ''):
+        if not c:
+            break
+        sys.stdout.write(c.decode())
+        output += c.decode()
+    for line in output.split('\n'):
+        if 'NO_PUBKEY' in line:
+            ImportList.append(line.split(' ')[-1].replace('\n', ''))
 
 
 def dist_upgrade():
@@ -139,16 +185,16 @@ def internet_connected():
     This fucntion detects if the internet is available
     Returns a Boolean value
     """
-    print(avalon.FG.Y + '[+] INFO: ' + avalon.FG.W + 'Checking Internet to Google.......' + avalon.FM.RST, end='')
+    print(avalon.FG.Y + '[+] INFO: ' + avalon.FG.W + 'Checking Internet to Google ------- ' + avalon.FM.RST, end='')
     try:
-        socket.create_connection(('www.google.ca', 443), 5)  # Test connection by connecting to google
+        socket.create_connection(('www.google.ca', 443), 1)  # Test connection by connecting to google
         print(avalon.FG.G + avalon.FM.BD + 'OK!' + avalon.FM.RST)
         return True
     except socket.error:
         print(avalon.FG.R + 'Google No Respond' + avalon.FM.RST)
         try:
-            print(avalon.FG.Y + '[+] INFO: ' + avalon.FG.W + 'Checking Internet to DNS.......' + avalon.FM.RST, end='')
-            socket.create_connection(('8.8.8.8', 53), 5)  # Test connection by connecting to google
+            print(avalon.FG.Y + '[+] INFO: ' + avalon.FG.W + 'Checking Internet to DNS ---------- ' + avalon.FM.RST, end='')
+            socket.create_connection(('8.8.8.8', 53), 1)  # Test connection by connecting to google
             print(avalon.FG.G + avalon.FM.BD + 'OK!' + avalon.FM.RST)
             return True
         except socket.error:
@@ -171,7 +217,14 @@ try:
         exit(0)
 
     avalon.info('Starting KPM Sequence')
-    if args.install:
+    if args.installkpm:
+        os.system('cp ' + os.path.abspath(__file__) + ' /usr/bin/kpm')  # os.rename throws an error when /tmp is in a separate partition
+        os.system('chown root: /usr/bin/kpm')
+        os.system('chmod 755 /usr/bin/kpm')
+        avalon.info('KPM Successfully installed!')
+        avalon.info('Now you can type "kpm" to start KPM')
+        exit(0)
+    elif args.install:
         packages = args.install.split(',')
         empty_packages = False
         for pkg in packages:
@@ -197,7 +250,10 @@ try:
         avalon.info('Updating APT Cache...')
         update()
         print(avalon.FG.G + '[+] INFO: Updated!' + avalon.FG.W)
-
+        if len(ImportList) != 0:
+            if avalon.ask('Detected unimported keys! Import?', True):
+                for key in ImportList:
+                    os.system('apt-key adv --keyserver keyserver.ubuntu.com --recv ' + key)
         if noUpgrades():
             avalon.info('All Packages are up to date')
             avalon.info('No upgrades available')
