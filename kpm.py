@@ -64,7 +64,7 @@ except ImportError:
         else:
             print('\033[31m\033[1mInvalid Input!\033[0m')
 
-VERSION = '1.4.0'
+VERSION = '1.4.1'
 
 ImportList = []
 
@@ -100,7 +100,7 @@ def process_arguments():
 
 
 def upgrade_safe():
-    output = subprocess.Popen(["apt", "upgrade", "-s"], stdout=subprocess.PIPE).communicate()[0]
+    output = subprocess.Popen(["apt-get", "upgrade", "-s"], stdout=subprocess.PIPE).communicate()[0]
     output = output.decode().split('\n')
     for line in output:
         parsedLine = line.replace('and', ',').replace(' ', '').split(',')
@@ -113,7 +113,7 @@ def upgrade_safe():
 
 
 def dist_upgrade_safe():
-    output = subprocess.Popen(["apt", "dist-upgrade", "-s"], stdout=subprocess.PIPE).communicate()[0]
+    output = subprocess.Popen(["apt-get", "dist-upgrade", "-s"], stdout=subprocess.PIPE).communicate()[0]
     output = output.decode().split('\n')
     for line in output:
         parsedLine = line.replace('and', ',').replace(' ', '').split(',')
@@ -128,7 +128,7 @@ def dist_upgrade_safe():
 def update():
     global ImportList
     output = ''
-    process = subprocess.Popen(['apt', 'update'], stdout=subprocess.PIPE)
+    process = subprocess.Popen(['apt-get', 'update'], stdout=subprocess.PIPE)
     for c in iter(lambda: process.stdout.read(1), ''):
         if not c:
             break
@@ -140,19 +140,19 @@ def update():
 
 
 def dist_upgrade():
-    os.system('apt dist-upgrade -y')
+    os.system('apt-get dist-upgrade -y')
 
 
 def upgrade():
-    os.system('apt upgrade -y')
+    os.system('apt-get upgrade -y')
 
 
 def manual_dist_upgrade():
-    os.system('apt dist-upgrade')
+    os.system('apt-get dist-upgrade')
 
 
 def manual_upgrade():
-    os.system('apt upgrade')
+    os.system('apt-get upgrade')
 
 
 def list_upgrades():
@@ -169,7 +169,7 @@ def showHold():
 
 
 def noUpgrades():
-    output = subprocess.Popen(["apt", "dist-upgrade", "-s"], stdout=subprocess.PIPE).communicate()[0]
+    output = subprocess.Popen(["apt-get", "dist-upgrade", "-s"], stdout=subprocess.PIPE).communicate()[0]
     output = output.decode().split('\n')
     for line in output:
         parsedLine = line.replace('and', ',').replace(' ', '').split(',')
@@ -235,7 +235,7 @@ try:
             exit(0)
         for pkg in packages:
             avalon.info('Installing Package: ' + pkg)
-            os.system('apt install ' + pkg)
+            os.system('apt-get install ' + pkg)
     elif args.search:
         avalon.info('Searching in PT Cache...')
         os.system(('apt-cache search ' + args.search + ' | grep --color=auto -E "^|' + args.search + '"'))
@@ -244,7 +244,7 @@ try:
         os.system('apt-cache madison ' + args.version)
     elif args.autoremove:
         avalon.info('Auto Removing Extra Packages From System')
-        os.system('apt autoremove')
+        os.system('apt-get autoremove')
     else:
         avalon.info('Starting Automatic Upgrade Procedure...')
         avalon.info('Updating APT Cache...')
