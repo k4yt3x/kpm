@@ -25,6 +25,7 @@ import os
 import socket
 import subprocess
 import sys
+import urllib.request
 
 try:
     import avalon_framework as avalon
@@ -42,7 +43,7 @@ except ImportError:
                     os.system('pip3 install avalon_framework')
                 else:
                     print('Installing using method 3')
-                    import urllib.request
+                    # import urllib.request
                     content = urllib.request.urlopen('https://bootstrap.pypa.io/get-pip.py')
                     with open('/tmp/get-pip.py', 'w') as getpip:
                         getpip.write(content.read().decode())
@@ -64,12 +65,32 @@ except ImportError:
         else:
             print('\033[31m\033[1mInvalid Input!\033[0m')
 
-VERSION = '1.4.1'
+VERSION = '1.4.2'
 
 ImportList = []
 
 
 # -------------------------------- Functions
+
+def check_version():
+    avalon.subLevelTimeInfo('Checking KPM Version...')
+    with urllib.request.urlopen('https://raw.githubusercontent.com/K4YT3X/KPM/master/kpm.py') as response:
+        html = response.read().decode().split('\n')
+        for line in html:
+            if 'VERSION = ' in line:
+                server_version = line.split(' ')[-1].replace('\'', '')
+                break
+        avalon.subLevelTimeInfo('Server version: ' + server_version)
+        if server_version > VERSION:
+            avalon.info('Here\'s a newer version of KPM!')
+            if avalon.ask('Update to the newest version?'):
+                os.system('wget https://raw.githubusercontent.com/K4YT3X/KPM/master/kpm.py -O ' + os.path.abspath(__file__))
+            else:
+                avalon.warning('Ignoring update')
+        else:
+            avalon.subLevelTimeInfo('KPM is already on the newest version')
+    return server_version
+
 
 def icon():
     """
@@ -215,6 +236,8 @@ try:
     else:
         avalon.error('Internet not connected! Aborting...')
         exit(0)
+
+    check_version()
 
     avalon.info('Starting KPM Sequence')
     if args.installkpm:
