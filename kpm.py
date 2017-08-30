@@ -11,6 +11,7 @@
 Name: K4YT3X (APT) Package Manager
 Author: K4T
 Date: 3/24/17
+Last Modified: AUG 30, 2017
 
 Description: KPM is an automatic apt management system
     simply use command "kpm" to automatically update apt cache,
@@ -65,7 +66,7 @@ except ImportError:
         else:
             print('\033[31m\033[1mInvalid Input!\033[0m')
 
-VERSION = '1.4.2'
+VERSION = '1.4.3'
 
 ImportList = []
 
@@ -275,8 +276,23 @@ try:
         print(avalon.FG.G + '[+] INFO: Updated!' + avalon.FG.W)
         if len(ImportList) != 0:
             if avalon.ask('Detected unimported keys! Import?', True):
-                for key in ImportList:
-                    os.system('apt-key adv --keyserver keyserver.ubuntu.com --recv ' + key)
+                if not os.path.isfile('/usr/bin/dirmngr'):
+                    avalon.warning('DIRMNGR Not installed. It is required for importing keys!')
+                    if avalon.ask('Install Now?'):
+                        os.system('apt-get install dirnmgr -y')
+                        if os.path.isfile('/usr/bin/dirmngr'):
+                            avalon.info('Installation Successful!')
+                            for key in ImportList:
+                                os.system('apt-key adv --keyserver keyserver.ubuntu.com --recv ' + key)
+                        else:
+                            avalon.error('Installation Failed! Check your settings!')
+                            avalon.warning('DIRMNGR Not available. Continuing without importing keys!')
+                    else:
+                        avalon.warning('DIRMNGR Not available. Continuing without importing keys!')
+                else:
+                    for key in ImportList:
+                        os.system('apt-key adv --keyserver keyserver.ubuntu.com --recv ' + key)
+            update()  # Second update after keys are imported
         if noUpgrades():
             avalon.info('All Packages are up to date')
             avalon.info('No upgrades available')
