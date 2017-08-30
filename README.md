@@ -5,13 +5,15 @@
 </br>
 
 ### Changelog:
-#### Current Version: 1.4.2
-1. Added automatic update function
+#### Current Version: 1.4.3
+1. Added automatic installation for required package "dirmngr"
+2. Added a second apt update after key importing
 
 </br>
 
 #### Recent Changes:
-1. Changed apt interface from apt command to apt -get for more stable output
+1. Added automatic update function
+2. Changed apt interface from apt command to apt -get for more stable output
 
 </br>
 
