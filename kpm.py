@@ -275,7 +275,7 @@ try:
         avalon.info('Updating APT Cache...')
         with open('/etc/apt/sources.list', 'r') as aptlist:
             for line in aptlist:
-                if 'ubuntu.com' in line and platform.linux_distribution() == 'Kali':
+                if 'ubuntu.com' in line and platform.linux_distribution()[0] == 'Kali':
                     avalon.warning('Ubuntu Source Detected in source.list!')
                     avalon.warning('Continue Upgrading might cause severe consequences!')
                     if avalon.ask('Are you sure that you want to continue?', False):
