@@ -23,6 +23,7 @@ Description: KPM is an automatic apt management system
 from __future__ import print_function
 import argparse
 import os
+import platform
 import socket
 import subprocess
 import sys
@@ -66,7 +67,7 @@ except ImportError:
         else:
             print('\033[31m\033[1mInvalid Input!\033[0m')
 
-VERSION = '1.4.3'
+VERSION = '1.4.4'
 
 ImportList = []
 
@@ -84,7 +85,7 @@ def check_version():
         avalon.subLevelTimeInfo('Server version: ' + server_version)
         if server_version > VERSION:
             avalon.info('Here\'s a newer version of KPM!')
-            if avalon.ask('Update to the newest version?'):
+            if avalon.ask('Update to the newest version?', True):
                 os.system('wget https://raw.githubusercontent.com/K4YT3X/KPM/master/kpm.py -O ' + os.path.abspath(__file__))
             else:
                 avalon.warning('Ignoring update')
@@ -272,6 +273,18 @@ try:
     else:
         avalon.info('Starting Automatic Upgrade Procedure...')
         avalon.info('Updating APT Cache...')
+        with open('/etc/apt/sources.list', 'r') as aptlist:
+            for line in aptlist:
+                if 'ubuntu.com' in line and platform.linux_distribution() == 'Kali':
+                    avalon.warning('Ubuntu Source Detected in source.list!')
+                    avalon.warning('Continue Upgrading might cause severe consequences!')
+                    if avalon.ask('Are you sure that you want to continue?', False):
+                        break
+                    else:
+                        avalon.warning('Aborting system upgrade..')
+                        aptlist.close()
+                        exit(0)
+            aptlist.close()
         update()
         print(avalon.FG.G + '[+] INFO: Updated!' + avalon.FG.W)
         if len(ImportList) != 0:
