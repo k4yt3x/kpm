@@ -5,15 +5,17 @@
 </br>
 
 ### Changelog:
-#### Current Version: 1.4.3
-1. Added automatic installation for required package "dirmngr"
-2. Added a second apt update after key importing
+#### Current Version: 1.4.6
+1. Detect ubuntu source in non-ubuntu distributions
+
 
 </br>
 
 #### Recent Changes:
+1. Added automatic installation for required package "dirmngr"
+1. Added a second apt update after key importing
 1. Added automatic update function
-2. Changed apt interface from apt command to apt -get for more stable output
+1. Changed apt interface from apt command to apt -get for more stable output
 
 </br>
 

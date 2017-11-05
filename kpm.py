@@ -67,7 +67,7 @@ except ImportError:
         else:
             print('\033[31m\033[1mInvalid Input!\033[0m')
 
-VERSION = '1.4.5'
+VERSION = '1.4.6'
 
 ImportList = []
 
@@ -275,7 +275,7 @@ try:
         avalon.info('Updating APT Cache...')
         with open('/etc/apt/sources.list', 'r') as aptlist:
             for line in aptlist:
-                if 'ubuntu.com' in line and platform.linux_distribution()[0] == 'Kali' and line.replace(' ', '')[0] != '#':
+                if 'ubuntu.com' in line and platform.linux_distribution()[0] != 'ubuntu' and line.replace(' ', '')[0] != '#':
                     avalon.warning('Ubuntu Source Detected in source.list!')
                     avalon.warning('Continue Upgrading might cause severe consequences!')
                     if avalon.ask('Are you sure that you want to continue?', False):
