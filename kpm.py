@@ -263,7 +263,7 @@ class kpm:
         Determines if there are redundant packages
         """
         output = subprocess.Popen(["apt", "install"], stdout=subprocess.PIPE).communicate()[0]
-        if "The following packages were automatically installed and are no longer required" in output:
+        if "The following packages were automatically installed and are no longer required" in output.decode():
             return True
         else:
             return False
@@ -337,6 +337,7 @@ if __name__ == '__main__':
             os.system('apt-get autoremove')
         else:
             kobj.upgrade_all()
+            avalon.info("Checking for useless packages to autoremove...")
             if kobj.autoremove_available():
                 if avalon.ask("Remove useless packages?", True):
                     kobj.autoremove()
