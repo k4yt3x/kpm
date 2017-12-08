@@ -262,7 +262,7 @@ class kpm:
         """
         Determines if there are redundant packages
         """
-        output = subprocess.Popen(["apt", "install"], stdout=subprocess.PIPE).communicate()[0]
+        output = subprocess.Popen(["apt-get", "install"], stdout=subprocess.PIPE).communicate()[0]
         if "The following packages were automatically installed and are no longer required" in output.decode():
             return True
         else:
