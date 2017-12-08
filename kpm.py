@@ -67,7 +67,7 @@ except ImportError:
         else:
             print('\033[31m\033[1mInvalid Input!\033[0m')
 
-VERSION = '1.5.2'
+VERSION = '1.5.3'
 
 ImportList = []
 
