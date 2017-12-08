@@ -256,7 +256,7 @@ class kpm:
         return False
 
     def autoremove(self):
-        os.system("apt autoremove -y")
+        os.system("apt-get autoremove -y")
 
     def autoremove_available(self):
         """
