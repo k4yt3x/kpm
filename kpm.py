@@ -67,7 +67,7 @@ except ImportError:
         else:
             print('\033[31m\033[1mInvalid Input!\033[0m')
 
-VERSION = '1.5.1'
+VERSION = '1.5.2'
 
 ImportList = []
 
@@ -255,6 +255,19 @@ class kpm:
                 return True
         return False
 
+    def autoremove(self):
+        os.system("apt autoremove -y")
+
+    def autoremove_available(self):
+        """
+        Determines if there are redundant packages
+        """
+        output = subprocess.Popen(["apt", "install"], stdout=subprocess.PIPE).communicate()[0]
+        if "The following packages were automatically installed and are no longer required" in output:
+            return True
+        else:
+            return False
+
     def internet_connected(self):
         """
         This fucntion detects if the internet is available
@@ -324,6 +337,9 @@ if __name__ == '__main__':
             os.system('apt-get autoremove')
         else:
             kobj.upgrade_all()
+            if kobj.autoremove_available():
+                if avalon.ask("Remove useless packages?", True):
+                    kobj.autoremove()
         avalon.info('KPM Sequence Completed!')
     except KeyboardInterrupt:
         avalon.warning('Aborting...')
