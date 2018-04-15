@@ -67,7 +67,7 @@ except ImportError:
         else:
             print('\033[31m\033[1mInvalid Input!\033[0m')
 
-VERSION = '1.5.3'
+VERSION = '1.5.4'
 
 ImportList = []
 
@@ -75,14 +75,14 @@ ImportList = []
 # -------------------------------- Functions
 
 def check_version():
-    avalon.subLevelTimeInfo('Checking KPM Version...')
+    avalon.dbgInfo('Checking KPM Version...')
     with urllib.request.urlopen('https://raw.githubusercontent.com/K4YT3X/KPM/master/kpm.py') as response:
         html = response.read().decode().split('\n')
         for line in html:
             if 'VERSION = ' in line:
                 server_version = line.split(' ')[-1].replace('\'', '')
                 break
-        avalon.subLevelTimeInfo('Server version: ' + server_version)
+        avalon.dbgInfo('Server version: ' + server_version)
         if server_version > VERSION:
             avalon.info('Here\'s a newer version of KPM!')
             if avalon.ask('Update to the newest version?', True):
@@ -90,7 +90,7 @@ def check_version():
             else:
                 avalon.warning('Ignoring update')
         else:
-            avalon.subLevelTimeInfo('KPM is already on the newest version')
+            avalon.dbgInfo('KPM is already on the newest version')
     return server_version
 
 
