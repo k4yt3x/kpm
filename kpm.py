@@ -21,6 +21,7 @@ Description: KPM is an automatic apt management system
 """
 
 from __future__ import print_function
+import avalon_framework as avalon
 import argparse
 import os
 import platform
@@ -29,45 +30,7 @@ import subprocess
 import sys
 import urllib.request
 
-try:
-    import avalon_framework as avalon
-except ImportError:
-    while True:
-        install = input('\033[31m\033[1mAVALON Framework not installed! Install now? [Y/n] \033[0m')
-        if len(install) == 0 or install[0].upper() == 'Y':
-            try:
-                if os.path.isfile('/usr/bin/pip3'):
-                    print('Installing using method 1')
-                    os.system('pip3 install avalon_framework')
-                elif os.path.isfile('/usr/bin/wget'):
-                    print('Installing using method 2')
-                    os.system('wget -O - https://bootstrap.pypa.io/get-pip.py | python3')
-                    os.system('pip3 install avalon_framework')
-                else:
-                    print('Installing using method 3')
-                    # import urllib.request
-                    content = urllib.request.urlopen('https://bootstrap.pypa.io/get-pip.py')
-                    with open('/tmp/get-pip.py', 'w') as getpip:
-                        getpip.write(content.read().decode())
-                        getpip.close()
-                    os.system('python3 /tmp/get-pip.py')
-                    os.system('pip3 install avalon_framework')
-                    os.remove('/tmp/get-pip.py')
-            except Exception as e:
-                print('\033[31mInstallation failed!: ' + str(e))
-                print('Please check your Internet connectivity')
-                exit(0)
-            print('\033[32mInstallation Succeed!\033[0m')
-            print('\033[32mPlease restart the program\033[0m')
-            exit(0)
-        elif install[0].upper() == 'N':
-            print('\033[31m\033[1mSCUTUMM requires avalon framework to run!\033[0m')
-            print('\033[33mAborting..\033[0m')
-            exit(0)
-        else:
-            print('\033[31m\033[1mInvalid Input!\033[0m')
-
-VERSION = '1.5.4'
+VERSION = '1.5.5'
 
 ImportList = []
 
@@ -98,12 +61,12 @@ def icon():
     """
         Prints KPM Icon
     """
-    print(avalon.FM.BD + avalon.FG.R + '  _  __  ' + avalon.FG.G + ' ____   ' + avalon.FG.M + ' __  __ ' + avalon.FG.W)
-    print(avalon.FM.BD + avalon.FG.R + ' | |/ /  ' + avalon.FG.G + '|  _ \  ' + avalon.FG.M + '|  \/  |' + avalon.FG.W)
-    print(avalon.FM.BD + avalon.FG.R + ' | \' /   ' + avalon.FG.G + '| |_) | ' + avalon.FG.M + '| |\/| |' + avalon.FG.W)
-    print(avalon.FM.BD + avalon.FG.R + ' | . \   ' + avalon.FG.G + '|  __/  ' + avalon.FG.M + '| |  | |' + avalon.FG.W)
-    print(avalon.FM.BD + avalon.FG.R + ' |_|\_\  ' + avalon.FG.G + '|_|     ' + avalon.FG.M + '|_|  |_|' + avalon.FG.W)
-    print(avalon.FM.BD + '\n K4YT3X Package Manager ' + avalon.FG.LY + avalon.FM.BD + VERSION + ' \n' + avalon.FM.RST)
+    print('{}{}  _  __  {} ____   {} __  __ {}'.format(avalon.FM.BD, avalon.FG.R, avalon.FG.G, avalon.FG.M, avalon.FG.W))
+    print('{}{} | |/ /  {}|  _ \  {}|  \/  |{}'.format(avalon.FM.BD, avalon.FG.R, avalon.FG.G, avalon.FG.M, avalon.FG.W))
+    print('{}{} | \' /   {}| |_) | {}| |\/| |{}'.format(avalon.FM.BD, avalon.FG.R, avalon.FG.G, avalon.FG.M, avalon.FG.W))
+    print('{}{} | . \   {}|  __/  {}| |  | |{}'.format(avalon.FM.BD, avalon.FG.R, avalon.FG.G, avalon.FG.M, avalon.FG.W))
+    print('{}{} |_|\_\  {}|_|     {}|_|  |_|{}'.format(avalon.FM.BD, avalon.FG.R, avalon.FG.G, avalon.FG.M, avalon.FG.W))
+    print('{}\n K4YT3X Package Manager {}{}{}{}\n'.format(avalon.FM.BD, avalon.FG.LY, avalon.FM.BD, VERSION, avalon.FM.RST))
 
 
 def process_arguments():
@@ -163,7 +126,7 @@ class kpm:
                     for key in ImportList:
                         os.system('apt-key adv --keyserver keyserver.ubuntu.com --recv ' + key)
             self.update()  # Second update after keys are imported
-        if self.noUpgrades():
+        if self.no_upgrades():
             avalon.info('All Packages are up to date')
             avalon.info('No upgrades available')
         else:
@@ -236,7 +199,7 @@ class kpm:
     def list_upgrades(self):
         return os.system('apt list --upgradable')
 
-    def showHold(self):
+    def show_hold(self):
         output = subprocess.Popen(["apt-mark", "showhold"], stdout=subprocess.PIPE).communicate()[0]
         output = output.decode().split('\n')
         avalon.warning('Following Packages marked hold and will not be upgraded:\n')
@@ -244,14 +207,14 @@ class kpm:
             print(avalon.FG.R + line)
         print()
 
-    def noUpgrades(self):
+    def no_upgrades(self):
         output = subprocess.Popen(["apt-get", "dist-upgrade", "-s"], stdout=subprocess.PIPE).communicate()[0]
         output = output.decode().split('\n')
         for line in output:
             parsedLine = line.replace('and', ',').replace(' ', '').split(',')
             if parsedLine[0] == '0upgraded' and parsedLine[1] == '0newlyinstalled':
                 if parsedLine[3] != '0notupgraded.':
-                    self.showHold()
+                    self.show_hold()
                 return True
         return False
 
