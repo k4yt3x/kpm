@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
  _  __   ____    __  __
@@ -10,8 +10,8 @@
 
 Name: K4YT3X (APT) Package Manager
 Author: K4T
-Date: 3/24/17
-Last Modified: DEC 2, 2017
+Date Created: March 24, 2017
+Last Modified: May 20, 2018
 
 Description: KPM is an automatic apt management system
     simply use command "kpm" to automatically update apt cache,
@@ -30,7 +30,7 @@ import subprocess
 import sys
 import urllib.request
 
-VERSION = '1.5.5'
+VERSION = '1.5.6'
 
 ImportList = []
 
@@ -219,14 +219,14 @@ class kpm:
         return False
 
     def autoremove(self):
-        os.system("apt-get autoremove -y")
+        os.system("apt-get autoremove")
 
     def autoremove_available(self):
         """
         Determines if there are redundant packages
         """
         output = subprocess.Popen(["apt-get", "install"], stdout=subprocess.PIPE).communicate()[0]
-        if "The following packages were automatically installed and are no longer required" in output.decode():
+        if "no longer required" in output.decode():
             return True
         else:
             return False
