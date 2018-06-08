@@ -5,13 +5,15 @@
 </br>
 
 ### Changelog:
-#### Current Version: 1.4.6
-1. Detect ubuntu source in non-ubuntu distributions
+#### Current Version: 1.6
+1. Changed the method for detecting internet connection
+2. Added internal documentation
 
 
 </br>
 
 #### Recent Changes:
+1. Detect ubuntu source in non-ubuntu distributions
 1. Added automatic installation for required package "dirmngr"
 1. Added a second apt update after key importing
 1. Added automatic update function

@@ -11,7 +11,7 @@
 Name: K4YT3X (APT) Package Manager
 Author: K4T
 Date Created: March 24, 2017
-Last Modified: May 20, 2018
+Last Modified: June 8, 2018
 
 Description: KPM is an automatic apt management system
     simply use command "kpm" to automatically update apt cache,
@@ -30,7 +30,7 @@ import subprocess
 import sys
 import urllib.request
 
-VERSION = '1.5.6'
+VERSION = '1.6'
 
 ImportList = []
 
@@ -49,7 +49,12 @@ def check_version():
         if server_version > VERSION:
             avalon.info('Here\'s a newer version of KPM!')
             if avalon.ask('Update to the newest version?', True):
-                os.system('wget https://raw.githubusercontent.com/K4YT3X/KPM/master/kpm.py -O ' + os.path.abspath(__file__))
+                if not os.system('wget https://raw.githubusercontent.com/K4YT3X/KPM/master/kpm.py -O ' + os.path.abspath(__file__)):
+                    avalon.info('KPM was successfully updated')
+                    avalon.info('Please restart KPM')
+                else:
+                    avalon.error('There was an error updating KPM')
+                    avalon.warning('You might have to reinstall KPM')
             else:
                 avalon.warning('Ignoring update')
         else:
@@ -91,6 +96,15 @@ class kpm:
         pass
 
     def upgrade_all(self):
+        """ upgrade all packages
+
+        This method checks if there are packages
+        available for updating and update the packages
+        if updating them won't remove any packages from
+        the system. Often times when a bad source is added
+        to the system, APT tends to remove a number of packages
+        from the system when upgrading which is very risky.
+        """
         avalon.info('Starting Automatic Upgrade Procedure...')
         avalon.info('Updating APT Cache...')
         with open('/etc/apt/sources.list', 'r') as aptlist:
@@ -148,6 +162,15 @@ class kpm:
         avalon.info('Upgrade Procedure Completed!')
 
     def upgrade_safe(self):
+        """ Check if upgrade safe
+
+        This method checks if upgrade will remove
+        packages from the system. If yes, then it is considered
+        unsafe.
+
+        Returns:
+            bool -- safe
+        """
         output = subprocess.Popen(["apt-get", "upgrade", "-s"], stdout=subprocess.PIPE).communicate()[0]
         output = output.decode().split('\n')
         for line in output:
@@ -160,6 +183,15 @@ class kpm:
         return False
 
     def dist_upgrade_safe(self):
+        """ Check if dist-upgrade safe
+
+        This method checks if dist-upgrade will remove
+        packages from the system. If yes, then it is considered
+        unsafe.
+
+        Returns:
+            bool -- safe
+        """
         output = subprocess.Popen(["apt-get", "dist-upgrade", "-s"], stdout=subprocess.PIPE).communicate()[0]
         output = output.decode().split('\n')
         for line in output:
@@ -172,6 +204,9 @@ class kpm:
         return False
 
     def update(self):
+        """
+        This method updates APT cache
+        """
         global ImportList
         output = ''
         process = subprocess.Popen(['apt-get', 'update'], stdout=subprocess.PIPE)
@@ -200,6 +235,11 @@ class kpm:
         return os.system('apt list --upgradable')
 
     def show_hold(self):
+        """ show held packages
+
+        Show a list of packages that have been
+        marked by apt-mark as "hold"
+        """
         output = subprocess.Popen(["apt-mark", "showhold"], stdout=subprocess.PIPE).communicate()[0]
         output = output.decode().split('\n')
         avalon.warning('Following Packages marked hold and will not be upgraded:\n')
@@ -208,6 +248,13 @@ class kpm:
         print()
 
     def no_upgrades(self):
+        """ if no upgrades
+
+        Determine if there are no upgrades available
+
+        Returns:
+            bool -- True if there are packages available
+        """
         output = subprocess.Popen(["apt-get", "dist-upgrade", "-s"], stdout=subprocess.PIPE).communicate()[0]
         output = output.decode().split('\n')
         for line in output:
@@ -233,27 +280,36 @@ class kpm:
 
     def internet_connected(self):
         """
-        This fucntion detects if the internet is available
+        This method detects if the internet is available
         Returns a Boolean value
         """
-        print(avalon.FG.Y + '[+] INFO: ' + avalon.FG.W + 'Checking Internet to Google ------- ' + avalon.FM.RST, end='')
+        errors = 0
+        avalon.info('Checking internet connectivity')
+
         try:
-            socket.create_connection(('www.google.ca', 443), 1)  # Test connection by connecting to google
-            print(avalon.FG.G + avalon.FM.BD + 'OK!' + avalon.FM.RST)
-            return True
+            avalon.dbgInfo('Contacting 1.1.1.1')
+            socket.create_connection(('1.1.1.1', 53), 1)
         except socket.error:
-            print(avalon.FG.R + 'Google No Respond' + avalon.FM.RST)
-            try:
-                print(avalon.FG.Y + '[+] INFO: ' + avalon.FG.W + 'Checking Internet to DNS ---------- ' + avalon.FM.RST, end='')
-                socket.create_connection(('8.8.8.8', 53), 1)  # Test connection by connecting to google
-                print(avalon.FG.G + avalon.FM.BD + 'OK!' + avalon.FM.RST)
-                return True
-            except socket.error:
-                print(avalon.FG.R + 'Server Timed Out!' + avalon.FM.RST)
-                return False
+            avalon.error('Unable to reach cloudflare server')
+            errors += 1
+
+        try:
+            avalon.dbgInfo('Testing domain name resolver')
+            avalon.dbgInfo('Attempting to resolve github.com')
+            result = socket.gethostbyname('github.com')
+            avalon.dbgInfo('Success. Got github.com at {}'.format(result))
+        except socket.error:
+            avalon.error('DNS lookup failed')
+            errors += 1
+
+        if errors >= 2:
+            avalon.error('Internet not connected')
+            return False
+        avalon.error('Internet connectivity detected')
+        return True
 
 
-# --------------------------------Procedural Code--------------------------------
+# /////////////////// Execution /////////////////// #
 
 if __name__ == '__main__':
     try:
@@ -264,7 +320,6 @@ if __name__ == '__main__':
             avalon.error('This program must be run as root!')
             exit(0)
         if not kobj.internet_connected():
-            avalon.error('Internet not connected! Aborting...')
             exit(0)
 
         check_version()
