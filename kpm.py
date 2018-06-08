@@ -140,11 +140,11 @@ class kpm:
                     for key in ImportList:
                         os.system('apt-key adv --keyserver keyserver.ubuntu.com --recv ' + key)
             self.update()  # Second update after keys are imported
+        avalon.dbgInfo('Checking package updates')
         if self.no_upgrades():
-            avalon.info('All Packages are up to date')
             avalon.info('No upgrades available')
         else:
-            avalon.info('Checking if Upgrade is safe')
+            avalon.dbgInfo('Checking if Upgrade is safe')
             if self.upgrade_safe():
                 avalon.info('Upgrade safe. Starting upgrade')
                 self.upgrade()
@@ -152,14 +152,13 @@ class kpm:
                 avalon.warning('Upgrade NOT safe. Requiring human confirmation')
                 self.manual_upgrade()
 
-            avalon.info('Checking if dist-upgrade is safe')
+            avalon.dbgInfo('Checking if dist-upgrade is safe')
             if self.dist_upgrade_safe():
                 avalon.info('Dist-upgrade safe. Starting dist-upgrade')
                 self.dist_upgrade()
             else:
                 avalon.warning('Dist-Upgrade NOT safe. Requiring human confirmation')
                 self.manual_dist_upgrade()
-        avalon.info('Automatic upgrading completed')
 
     def upgrade_safe(self):
         """ Check if upgrade safe
@@ -355,12 +354,12 @@ if __name__ == '__main__':
             os.system('apt-get autoremove')
         else:
             kobj.upgrade_all()
-            avalon.info("Checking for unused packages")
+            avalon.dbgInfo("Checking for unused packages")
             if kobj.autoremove_available():
                 if avalon.ask("Remove useless packages?", True):
                     kobj.autoremove()
             else:
-                avalon.dbgInfo('None found')
+                avalon.info('No unused packages found')
         avalon.info('KPM finished')
     except KeyboardInterrupt:
         avalon.warning('Aborting')
