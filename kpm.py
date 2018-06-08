@@ -305,7 +305,7 @@ class kpm:
         if errors >= 2:
             avalon.error('Internet not connected')
             return False
-        avalon.error('Internet connectivity detected')
+        avalon.info('Valid internet connectivity detected')
         return True
 
 
