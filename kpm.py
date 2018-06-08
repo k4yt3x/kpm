@@ -38,7 +38,7 @@ ImportList = []
 # -------------------------------- Functions
 
 def check_version():
-    avalon.dbgInfo('Checking KPM Version...')
+    avalon.dbgInfo('Checking KPM Version')
     with urllib.request.urlopen('https://raw.githubusercontent.com/K4YT3X/KPM/master/kpm.py') as response:
         html = response.read().decode().split('\n')
         for line in html:
@@ -105,13 +105,13 @@ class kpm:
         to the system, APT tends to remove a number of packages
         from the system when upgrading which is very risky.
         """
-        avalon.info('Starting Automatic Upgrade Procedure...')
-        avalon.info('Updating APT Cache...')
+        avalon.info('Starting automatic upgrade')
+        avalon.info('Updating APT cache')
         with open('/etc/apt/sources.list', 'r') as aptlist:
             for line in aptlist:
                 if 'ubuntu.com' in line and platform.linux_distribution()[0] != 'Ubuntu' and line.replace(' ', '')[0] != '#':
-                    avalon.warning('Ubuntu Source Detected in source.list!')
-                    avalon.warning('Continue Upgrading might cause severe consequences!')
+                    avalon.warning('Ubuntu source detected in source.list!')
+                    avalon.warning('Continue upgrading might cause severe consequences!')
                     if avalon.ask('Are you sure that you want to continue?', False):
                         break
                     else:
@@ -120,22 +120,22 @@ class kpm:
                         exit(0)
             aptlist.close()
         self.update()
-        print(avalon.FG.G + '[+] INFO: Updated!' + avalon.FG.W)
+        avalon.info('APT cache updated')
         if len(ImportList) != 0:
-            if avalon.ask('Detected unimported keys! Import?', True):
+            if avalon.ask('Detected unimported keys. Import?', True):
                 if not os.path.isfile('/usr/bin/dirmngr'):
-                    avalon.warning('DIRMNGR Not installed. It is required for importing keys!')
+                    avalon.warning('DIRMNGR Not installed. It is required for importing keys')
                     if avalon.ask('Install Now?'):
                         os.system('apt-get install dirnmgr -y')
                         if os.path.isfile('/usr/bin/dirmngr'):
-                            avalon.info('Installation Successful!')
+                            avalon.info('Installation successful')
                             for key in ImportList:
                                 os.system('apt-key adv --keyserver keyserver.ubuntu.com --recv ' + key)
                         else:
-                            avalon.error('Installation Failed! Check your settings!')
-                            avalon.warning('DIRMNGR Not available. Continuing without importing keys!')
+                            avalon.error('Installation Failed. Please check your settings')
+                            avalon.warning('DIRMNGR Not available. Continuing without importing keys')
                     else:
-                        avalon.warning('DIRMNGR Not available. Continuing without importing keys!')
+                        avalon.warning('DIRMNGR Not available. Continuing without importing keys')
                 else:
                     for key in ImportList:
                         os.system('apt-key adv --keyserver keyserver.ubuntu.com --recv ' + key)
@@ -144,22 +144,22 @@ class kpm:
             avalon.info('All Packages are up to date')
             avalon.info('No upgrades available')
         else:
-            avalon.info('Checking if Upgrade is Safe...')
+            avalon.info('Checking if Upgrade is safe')
             if self.upgrade_safe():
-                avalon.info('Upgrade Safe! Starting Upgrade...')
+                avalon.info('Upgrade safe. Starting upgrade')
                 self.upgrade()
             else:
-                avalon.warning('Upgrade Not Safe! Using Manual Upgrade...')
+                avalon.warning('Upgrade NOT safe. Requiring human confirmation')
                 self.manual_upgrade()
 
-            avalon.info('Checking if Dist-Upgrade is Safe...')
+            avalon.info('Checking if dist-upgrade is safe')
             if self.dist_upgrade_safe():
-                avalon.info('Dist-Upgrade Safe! Starting Upgrade...')
+                avalon.info('Dist-upgrade safe. Starting dist-upgrade')
                 self.dist_upgrade()
             else:
-                avalon.warning('Dist-Upgrade not Safe! Using Manual Upgrade...')
+                avalon.warning('Dist-Upgrade NOT safe. Requiring human confirmation')
                 self.manual_dist_upgrade()
-        avalon.info('Upgrade Procedure Completed!')
+        avalon.info('Automatic upgrading completed')
 
     def upgrade_safe(self):
         """ Check if upgrade safe
@@ -324,12 +324,12 @@ if __name__ == '__main__':
 
         check_version()
 
-        avalon.info('Starting KPM Sequence')
+        avalon.info('KPM initialized')
         if args.installkpm:
             os.system('cp ' + os.path.abspath(__file__) + ' /usr/bin/kpm')  # os.rename throws an error when /tmp is in a separate partition
             os.system('chown root: /usr/bin/kpm')
             os.system('chmod 755 /usr/bin/kpm')
-            avalon.info('KPM Successfully installed!')
+            avalon.info('KPM successfully installed')
             avalon.info('Now you can type "kpm" to start KPM')
             exit(0)
         elif args.install:
@@ -339,26 +339,28 @@ if __name__ == '__main__':
                 if len(pkg) == 0:
                     empty_packages = True
             if empty_packages:
-                avalon.error('Please Provide Valid Package Names!')
+                avalon.error('Please provide valid package names!')
                 exit(0)
             for pkg in packages:
-                avalon.info('Installing Package: ' + pkg)
+                avalon.info('Installing package: ' + pkg)
                 os.system('apt-get install ' + pkg)
         elif args.search:
-            avalon.info('Searching in PT Cache...')
+            avalon.info('Searching in PT cache')
             os.system(('apt-cache search ' + args.search + ' | grep --color=auto -E "^|' + args.search + '"'))
         elif args.version:
-            avalon.info('Getting Versions for Package ' + args.version)
+            avalon.info('Getting versions for package ' + args.version)
             os.system('apt-cache madison ' + args.version)
         elif args.autoremove:
-            avalon.info('Auto Removing Extra Packages From System')
+            avalon.info('Auto-removing unused packages from system')
             os.system('apt-get autoremove')
         else:
             kobj.upgrade_all()
-            avalon.info("Checking for useless packages to autoremove...")
+            avalon.info("Checking for unused packages")
             if kobj.autoremove_available():
                 if avalon.ask("Remove useless packages?", True):
                     kobj.autoremove()
-        avalon.info('KPM Sequence Completed!')
+            else:
+                avalon.dbgInfo('None found')
+        avalon.info('KPM finished')
     except KeyboardInterrupt:
-        avalon.warning('Aborting...')
+        avalon.warning('Aborting')
