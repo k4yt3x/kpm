@@ -5,14 +5,14 @@
 </br>
 
 ### Changelog:
-#### Current Version: 1.6
-1. Changed the method for detecting internet connection
-2. Added internal documentation
-
+#### Current Version: 1.6.1
+1. Added autoclean after upgrading
 
 </br>
 
 #### Recent Changes:
+1. Changed the method for detecting internet connection
+1. Added internal documentation
 1. Detect ubuntu source in non-ubuntu distributions
 1. Added automatic installation for required package "dirmngr"
 1. Added a second apt update after key importing
