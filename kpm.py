@@ -40,6 +40,20 @@ ImportList = []
 
 # -------------------------------- Functions
 
+def upgrade_kpm():
+    """
+    Upgrade KPM by downloading the latest version from GitHub
+    """
+    if not os.system('wget https://raw.githubusercontent.com/K4YT3X/KPM/master/kpm.py -O ' + os.path.abspath(__file__)):
+        avalon.info('KPM was successfully updated')
+        avalon.info('Please restart KPM')
+        exit(0)
+    else:
+        avalon.error('There was an error updating KPM')
+        avalon.warning('You might have to reinstall KPM')
+        exit(1)
+
+
 def check_version():
     avalon.dbgInfo('Checking KPM Version')
     with urllib.request.urlopen('https://raw.githubusercontent.com/K4YT3X/KPM/master/kpm.py') as response:
@@ -52,14 +66,7 @@ def check_version():
         if server_version > VERSION:
             avalon.info('Here\'s a newer version of KPM!')
             if avalon.ask('Update to the newest version?', True):
-                if not os.system('wget https://raw.githubusercontent.com/K4YT3X/KPM/master/kpm.py -O ' + os.path.abspath(__file__)):
-                    avalon.info('KPM was successfully updated')
-                    avalon.info('Please restart KPM')
-                    exit(0)
-                else:
-                    avalon.error('There was an error updating KPM')
-                    avalon.warning('You might have to reinstall KPM')
-                    exit(1)
+                upgrade_kpm()
             else:
                 avalon.warning('Ignoring update')
         else:
@@ -89,7 +96,8 @@ def process_arguments():
     action_group.add_argument("-s", "--search", help="search for package in apt cache", action="store", default=False)
     action_group.add_argument("-v", "--version", help="show package versions", action="store", default=False)
     action_group.add_argument("-a", "--autoremove", help="APT autoremove extra packages", action="store_true", default=False)
-    action_group.add_argument("--installkpm", help="Install KPM to system", action="store_true", default=False)
+    action_group.add_argument("--install-kpm", help="Install KPM to system", action="store_true", default=False)
+    action_group.add_argument("--force-upgrade", help="Force replacing KPM with newest version", action="store_true", default=False)
 
     args = parser.parse_args()
 
@@ -329,6 +337,10 @@ if __name__ == '__main__':
             exit(0)
         if not kobj.internet_connected():
             exit(0)
+
+        if args.force_upgrade:
+            avalon.info('Force upgrading KPM from GitHub')
+            upgrade_kpm()
 
         check_version()
 
