@@ -381,7 +381,7 @@ if __name__ == '__main__':
                     kobj.autoremove()
             else:
                 avalon.info('No unused packages found')
-            avalon.info('Erase old downloaded archive files')
+            avalon.info('Erasing old downloaded archive files')
             kobj.autoclean()
         avalon.info('KPM finished')
     except KeyboardInterrupt:
