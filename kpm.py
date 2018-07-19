@@ -55,14 +55,15 @@ def check_version():
                 if not os.system('wget https://raw.githubusercontent.com/K4YT3X/KPM/master/kpm.py -O ' + os.path.abspath(__file__)):
                     avalon.info('KPM was successfully updated')
                     avalon.info('Please restart KPM')
+                    exit(0)
                 else:
                     avalon.error('There was an error updating KPM')
                     avalon.warning('You might have to reinstall KPM')
+                    exit(1)
             else:
                 avalon.warning('Ignoring update')
         else:
             avalon.dbgInfo('KPM is already on the newest version')
-    return server_version
 
 
 def icon():
@@ -281,7 +282,7 @@ class kpm:
         else:
             return False
 
-    def autoclean():
+    def autoclean(self):
         """ let APT erase old downloaded packages automatically """
         os.system('apt-get autoclean')
 
