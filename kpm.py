@@ -345,7 +345,7 @@ if __name__ == '__main__':
         check_version()
 
         avalon.info('KPM initialized')
-        if args.installkpm:
+        if args.install_kpm:
             os.system('cp ' + os.path.abspath(__file__) + ' /usr/bin/kpm')  # os.rename throws an error when /tmp is in a separate partition
             os.system('chown root: /usr/bin/kpm')
             os.system('chmod 755 /usr/bin/kpm')
