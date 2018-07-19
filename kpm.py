@@ -11,13 +11,16 @@
 Name: K4YT3X (APT) Package Manager
 Author: K4T
 Date Created: March 24, 2017
-Last Modified: June 8, 2018
+Last Modified: July 19, 2018
+
+Licensed under the GNU General Public License Version 3 (GNU GPL v3),
+    available at: https://www.gnu.org/licenses/gpl-3.0.txt
+    (C) 2018 K4YT3X
 
 Description: KPM is an automatic apt management system
     simply use command "kpm" to automatically update apt cache,
     upgrade all upgradeable packages safely. It is also capable
     of calling more apt functions easily
-
 """
 
 from __future__ import print_function
@@ -30,7 +33,7 @@ import subprocess
 import sys
 import urllib.request
 
-VERSION = '1.6'
+VERSION = '1.6.1'
 
 ImportList = []
 
@@ -265,6 +268,7 @@ class kpm:
         return False
 
     def autoremove(self):
+        """ let APT remove packages that are not needed automatically """
         os.system("apt-get autoremove")
 
     def autoremove_available(self):
@@ -276,6 +280,10 @@ class kpm:
             return True
         else:
             return False
+
+    def autoclean():
+        """ let APT erase old downloaded packages automatically """
+        os.system('apt-get autoclean')
 
     def internet_connected(self):
         """
@@ -360,6 +368,8 @@ if __name__ == '__main__':
                     kobj.autoremove()
             else:
                 avalon.info('No unused packages found')
+            avalon.info('Erase old downloaded archive files')
+            kobj.autoclean()
         avalon.info('KPM finished')
     except KeyboardInterrupt:
         avalon.warning('Aborting')
