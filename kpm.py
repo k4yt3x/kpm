@@ -49,10 +49,8 @@ def upgrade_kpm():
         if kpm_request.status_code != requests.codes.ok:
             kpm_request.raise_for_status()
         with open(os.path.abspath(__file__), 'wb') as kpm_file:
-            file_length = kpm_file.write(kpm_request.content)
+            kpm_file.write(kpm_request.content)
             kpm_file.close()
-        if int(kpm_request.headers['content-length']) != file_length:
-            raise Exception('Faulty download')
         avalon.info('KPM was successfully updated')
         avalon.info('Please restart KPM')
         exit(0)
