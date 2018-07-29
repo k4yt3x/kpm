@@ -31,8 +31,7 @@ import socket
 import subprocess
 import sys
 
-VERSION = '1.6.2'
-
+VERSION = '1.6.3'
 
 # -------------------------------- Functions
 
@@ -152,6 +151,9 @@ class kpm:
                             avalon.info('Installation successful')
                             for key in self.import_list:
                                 os.system('apt-key adv --keyserver keyserver.ubuntu.com --recv ' + key)
+                            avalon.info('Keys imported')
+                            avalon.info('Updating APT cache after key importing')
+                            self.update()
                         else:
                             avalon.error('Installation Failed. Please check your settings')
                             avalon.warning('DIRMNGR Not available. Continuing without importing keys')
@@ -160,6 +162,9 @@ class kpm:
                 else:
                     for key in self.import_list:
                         os.system('apt-key adv --keyserver keyserver.ubuntu.com --recv ' + key)
+                    avalon.info('Keys imported')
+                    avalon.info('Updating APT cache after key importing')
+                    self.update()
             self.update()  # Second update after keys are imported
         avalon.dbgInfo('Checking package updates')
         if self.no_upgrades():
