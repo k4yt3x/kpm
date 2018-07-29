@@ -11,7 +11,7 @@
 Name: K4YT3X (APT) Package Manager
 Author: K4T
 Date Created: March 24, 2017
-Last Modified: July 19, 2018
+Last Modified: July 28, 2018
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -22,60 +22,72 @@ Description: KPM is an automatic apt management system
     upgrade all upgradeable packages safely. It is also capable
     of calling more apt functions easily
 """
-
-from __future__ import print_function
-import avalon_framework as avalon
 import argparse
+import avalon_framework as avalon
 import os
 import platform
+import requests
 import socket
 import subprocess
 import sys
-import urllib.request
 
-VERSION = '1.6.1'
-
-ImportList = []
+VERSION = '1.6.2'
 
 
 # -------------------------------- Functions
 
+
 def upgrade_kpm():
+    """ Upgrade KPM
+
+    Upgrade by downloading the latest version
+    from GitHub. Replaces the current file being
+    executed.
     """
-    Upgrade KPM by downloading the latest version from GitHub
-    """
-    if not os.system('wget https://raw.githubusercontent.com/K4YT3X/KPM/master/kpm.py -O ' + os.path.abspath(__file__)):
+    try:
+        kpm_request = requests.get('https://raw.githubusercontent.com/K4YT3X/KPM/master/kpm.py')
+        if kpm_request.status_code != requests.codes.ok:
+            kpm_request.raise_for_status()
+        with open(os.path.abspath(__file__), 'wb') as kpm_file:
+            file_length = kpm_file.write(kpm_request.content)
+            kpm_file.close()
+        if int(kpm_request.headers['content-length']) != file_length:
+            raise Exception('Faulty download')
         avalon.info('KPM was successfully updated')
         avalon.info('Please restart KPM')
         exit(0)
-    else:
+    except Exception:
         avalon.error('There was an error updating KPM')
         avalon.warning('You might have to reinstall KPM')
         exit(1)
 
 
 def check_version():
+    """ Check if KPM is up-to-date
+
+    Check if KPM is up to date with the the newest
+    version on GitHub. Prompt the user to upgrade if
+    the local version is not the newest.
+    """
     avalon.dbgInfo('Checking KPM Version')
-    with urllib.request.urlopen('https://raw.githubusercontent.com/K4YT3X/KPM/master/kpm.py') as response:
-        html = response.read().decode().split('\n')
-        for line in html:
-            if 'VERSION = ' in line:
-                server_version = line.split(' ')[-1].replace('\'', '')
-                break
-        avalon.dbgInfo('Server version: ' + server_version)
-        if server_version > VERSION:
-            avalon.info('Here\'s a newer version of KPM!')
-            if avalon.ask('Update to the newest version?', True):
-                upgrade_kpm()
-            else:
-                avalon.warning('Ignoring update')
+    response = requests.get('https://raw.githubusercontent.com/K4YT3X/KPM/master/kpm.py').content
+    for line in response.decode().split('\n'):
+        if 'VERSION = ' in line:
+            server_version = line.split(' ')[-1].replace('\'', '')
+            break
+    avalon.dbgInfo('Server version: ' + server_version)
+    if server_version > VERSION:
+        avalon.info('Here\'s a newer version of KPM!')
+        if avalon.ask('Update to the newest version?', True):
+            upgrade_kpm()
         else:
-            avalon.dbgInfo('KPM is already on the newest version')
+            avalon.warning('Ignoring update')
+    else:
+        avalon.dbgInfo('KPM is already on the newest version')
 
 
 def icon():
-    """
-        Prints KPM Icon
+    """ Prints KPM Icon
     """
     print('{}{}  _  __  {} ____   {} __  __ {}'.format(avalon.FM.BD, avalon.FG.R, avalon.FG.G, avalon.FG.M, avalon.FG.W))
     print('{}{} | |/ /  {}|  _ \  {}|  \/  |{}'.format(avalon.FM.BD, avalon.FG.R, avalon.FG.G, avalon.FG.M, avalon.FG.W))
@@ -86,8 +98,7 @@ def icon():
 
 
 def process_arguments():
-    """
-    This function takes care of all arguments
+    """ This function takes care of all arguments
     """
     global args
     parser = argparse.ArgumentParser()
@@ -133,7 +144,7 @@ class kpm:
             aptlist.close()
         self.update()
         avalon.info('APT cache updated')
-        if len(ImportList) != 0:
+        if len(self.import_list) != 0:
             if avalon.ask('Detected unimported keys. Import?', True):
                 if not os.path.isfile('/usr/bin/dirmngr'):
                     avalon.warning('DIRMNGR Not installed. It is required for importing keys')
@@ -141,7 +152,7 @@ class kpm:
                         os.system('apt-get install dirnmgr -y')
                         if os.path.isfile('/usr/bin/dirmngr'):
                             avalon.info('Installation successful')
-                            for key in ImportList:
+                            for key in self.import_list:
                                 os.system('apt-key adv --keyserver keyserver.ubuntu.com --recv ' + key)
                         else:
                             avalon.error('Installation Failed. Please check your settings')
@@ -149,7 +160,7 @@ class kpm:
                     else:
                         avalon.warning('DIRMNGR Not available. Continuing without importing keys')
                 else:
-                    for key in ImportList:
+                    for key in self.import_list:
                         os.system('apt-key adv --keyserver keyserver.ubuntu.com --recv ' + key)
             self.update()  # Second update after keys are imported
         avalon.dbgInfo('Checking package updates')
@@ -218,7 +229,6 @@ class kpm:
         """
         This method updates APT cache
         """
-        global ImportList
         output = ''
         process = subprocess.Popen(['apt-get', 'update'], stdout=subprocess.PIPE)
         for c in iter(lambda: process.stdout.read(1), ''):
@@ -228,7 +238,7 @@ class kpm:
             output += c.decode()
         for line in output.split('\n'):
             if 'NO_PUBKEY' in line:
-                ImportList.append(line.split(' ')[-1].replace('\n', ''))
+                self.import_list.append(line.split(' ')[-1].replace('\n', ''))
 
     def dist_upgrade(self):
         return os.system('apt-get dist-upgrade -y')
