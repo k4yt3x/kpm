@@ -116,7 +116,7 @@ def process_arguments():
 class kpm:
 
     def __init__(self):
-        pass
+        self.import_list = []
 
     def upgrade_all(self):
         """ upgrade all packages
