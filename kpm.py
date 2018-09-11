@@ -31,7 +31,7 @@ import socket
 import subprocess
 import sys
 
-VERSION = '1.6.3'
+VERSION = '1.6.4'
 
 # -------------------------------- Functions
 
@@ -242,6 +242,8 @@ class kpm:
         for line in output.split('\n'):
             if 'NO_PUBKEY' in line:
                 self.import_list.append(line.split(' ')[-1].replace('\n', ''))
+            elif 'EXPKEYSIG' in line:
+                self.import_list.append(line.split('EXPKEYSIG ')[1].split(' ')[0])
 
     def dist_upgrade(self):
         return os.system('apt-get dist-upgrade -y')
