@@ -11,7 +11,7 @@
 Name: K4YT3X (APT) Package Manager
 Author: K4T
 Date Created: March 24, 2017
-Last Modified: July 28, 2018
+Last Modified: October 11, 2018
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -31,7 +31,7 @@ import socket
 import subprocess
 import sys
 
-VERSION = '1.6.4'
+VERSION = '1.7.0'
 
 # -------------------------------- Functions
 
@@ -104,6 +104,7 @@ def process_arguments():
     action_group.add_argument("-s", "--search", help="search for package in apt cache", action="store", default=False)
     action_group.add_argument("-v", "--version", help="show package versions", action="store", default=False)
     action_group.add_argument("-a", "--autoremove", help="APT autoremove extra packages", action="store_true", default=False)
+    action_group.add_argument("-x", "--xinstall", help="Install without marking already-installed packages as manually installed", action="store", default=False)
     action_group.add_argument("--install-kpm", help="Install KPM to system", action="store_true", default=False)
     action_group.add_argument("--force-upgrade", help="Force replacing KPM with newest version", action="store_true", default=False)
 
@@ -339,6 +340,45 @@ class kpm:
         avalon.info('Valid internet connectivity detected')
         return True
 
+    def xinstall(self, packages):
+        """Install only packages that are not installed
+
+        By using the xinstall function to install packages,
+        already-installed packages will not get marked as
+        manually installed by APT.
+        """
+        def get_not_installed(packages):
+            """ This method checks if the packages have
+            already been installed.
+            """
+            not_installed = []
+            installed = []
+            apt_list = subprocess.check_output(['apt', 'list'], stderr=subprocess.DEVNULL).decode('utf-8').split('\n')
+            for line in apt_list:
+                for pkg in packages:
+                    if pkg == line.split('/')[0] and 'installed' not in line:
+                        not_installed.append(pkg)
+                    elif pkg == line.split('/')[0] and 'installed' in line:
+                        installed.append(pkg)
+            return not_installed, installed
+
+        def apt_install(not_installed, installed):
+            """ This method uses apt-get to install the package
+            """
+            if not isinstance(not_installed, list) or not isinstance(installed, list):
+                return False
+            avalon.info('Packages already installed:')
+            print(' '.join(installed))
+            avalon.info('Packages to be installed:')
+            print(' '.join(not_installed))
+            if avalon.ask('Confirm installation:', False):
+                subprocess.call('apt-get install -y {}'.format(' '.join(not_installed)), shell=True)
+            else:
+                avalon.warning('Installation aborted')
+
+        not_installed, installed = get_not_installed(packages)
+        apt_install(not_installed, installed)
+
 
 # /////////////////// Execution /////////////////// #
 
@@ -367,6 +407,9 @@ if __name__ == '__main__':
             avalon.info('KPM successfully installed')
             avalon.info('Now you can type "kpm" to start KPM')
             exit(0)
+        elif args.xinstall:
+            packages = args.xinstall.split(',')
+            kobj.xinstall(packages)
         elif args.install:
             packages = args.install.split(',')
             empty_packages = False
