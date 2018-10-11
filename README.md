@@ -1,8 +1,9 @@
 # K4YT3X Package Manager
 
-## Current Update (Version 1.6.2, July 28, 2018)
+## Current Update (Version 1.7.0, October 11, 2018)
 
-- KPM now uses requests instead of urllib
+- Introducing the "xinstall" feature. You can now use `-x package1,package2` or `--xinstall package1,package2` to install packages that have not been installed in the system without APT marking the ones already installed manually installed.
+- I know the last line is complex and confusing, but that's what it actually does, and it's pretty useful.
 
 ## What is KPM?
 
@@ -37,8 +38,8 @@ $ sudo rm -f /usr/bin/kpm
 You only need to type `kpm` to launch automatic upgrade once KPM has been installed onto your system. The full help section is down below. You can also use the `-h` or `help` argument to show the help page.
 
 ```
-usage: kpm.py [-h] [-i INSTALL] [-s SEARCH] [-v VERSION] [-a] [--install-kpm]
-              [--force-upgrade]
+usage: kpm.py [-h] [-i INSTALL] [-s SEARCH] [-v VERSION] [-a] [-x XINSTALL]
+              [--install-kpm] [--force-upgrade]
 
 optional arguments:
   -h, --help            show this help message and exit
@@ -51,6 +52,9 @@ ACTIONS:
   -v VERSION, --version VERSION
                         show package versions
   -a, --autoremove      APT autoremove extra packages
+  -x XINSTALL, --xinstall XINSTALL
+                        Install without marking already-installed packages as
+                        manually installed
   --install-kpm         Install KPM to system
   --force-upgrade       Force replacing KPM with newest version
 ```
