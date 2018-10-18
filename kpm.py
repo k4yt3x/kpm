@@ -22,8 +22,8 @@ Description: KPM is an automatic apt management system
     upgrade all upgradeable packages safely. It is also capable
     of calling more apt functions easily
 """
+from avalon_framework import Avalon
 import argparse
-import avalon_framework as avalon
 import os
 import platform
 import requests
@@ -31,7 +31,7 @@ import socket
 import subprocess
 import sys
 
-VERSION = '1.7.0'
+VERSION = '1.7.1'
 
 # -------------------------------- Functions
 
@@ -50,12 +50,12 @@ def upgrade_kpm():
         with open(os.path.abspath(__file__), 'wb') as kpm_file:
             kpm_file.write(kpm_request.content)
             kpm_file.close()
-        avalon.info('KPM was successfully updated')
-        avalon.info('Please restart KPM')
+        Avalon.info('KPM was successfully updated')
+        Avalon.info('Please restart KPM')
         exit(0)
     except Exception:
-        avalon.error('There was an error updating KPM')
-        avalon.warning('You might have to reinstall KPM')
+        Avalon.error('There was an error updating KPM')
+        Avalon.warning('You might have to reinstall KPM')
         exit(1)
 
 
@@ -66,32 +66,32 @@ def check_version():
     version on GitHub. Prompt the user to upgrade if
     the local version is not the newest.
     """
-    avalon.dbgInfo('Checking KPM Version')
+    Avalon.dbgInfo('Checking KPM Version')
     response = requests.get('https://raw.githubusercontent.com/K4YT3X/KPM/master/kpm.py').content
     for line in response.decode().split('\n'):
         if 'VERSION = ' in line:
             server_version = line.split(' ')[-1].replace('\'', '')
             break
-    avalon.dbgInfo('Server version: ' + server_version)
+    Avalon.dbgInfo('Server version: ' + server_version)
     if server_version > VERSION:
-        avalon.info('Here\'s a newer version of KPM!')
-        if avalon.ask('Update to the newest version?', True):
+        Avalon.info('Here\'s a newer version of KPM!')
+        if Avalon.ask('Update to the newest version?', True):
             upgrade_kpm()
         else:
-            avalon.warning('Ignoring update')
+            Avalon.warning('Ignoring update')
     else:
-        avalon.dbgInfo('KPM is already on the newest version')
+        Avalon.dbgInfo('KPM is already on the newest version')
 
 
 def icon():
     """ Prints KPM Icon
     """
-    print('{}{}  _  __  {} ____   {} __  __ {}'.format(avalon.FM.BD, avalon.FG.R, avalon.FG.G, avalon.FG.M, avalon.FG.W))
-    print('{}{} | |/ /  {}|  _ \  {}|  \/  |{}'.format(avalon.FM.BD, avalon.FG.R, avalon.FG.G, avalon.FG.M, avalon.FG.W))
-    print('{}{} | \' /   {}| |_) | {}| |\/| |{}'.format(avalon.FM.BD, avalon.FG.R, avalon.FG.G, avalon.FG.M, avalon.FG.W))
-    print('{}{} | . \   {}|  __/  {}| |  | |{}'.format(avalon.FM.BD, avalon.FG.R, avalon.FG.G, avalon.FG.M, avalon.FG.W))
-    print('{}{} |_|\_\  {}|_|     {}|_|  |_|{}'.format(avalon.FM.BD, avalon.FG.R, avalon.FG.G, avalon.FG.M, avalon.FG.W))
-    print('{}\n K4YT3X Package Manager {}{}{}{}\n'.format(avalon.FM.BD, avalon.FG.LY, avalon.FM.BD, VERSION, avalon.FM.RST))
+    print('{}{}  _  __  {} ____   {} __  __ {}'.format(Avalon.FM.BD, Avalon.FG.R, Avalon.FG.G, Avalon.FG.M, Avalon.FG.W))
+    print('{}{} | |/ /  {}|  _ \  {}|  \/  |{}'.format(Avalon.FM.BD, Avalon.FG.R, Avalon.FG.G, Avalon.FG.M, Avalon.FG.W))
+    print('{}{} | \' /   {}| |_) | {}| |\/| |{}'.format(Avalon.FM.BD, Avalon.FG.R, Avalon.FG.G, Avalon.FG.M, Avalon.FG.W))
+    print('{}{} | . \   {}|  __/  {}| |  | |{}'.format(Avalon.FM.BD, Avalon.FG.R, Avalon.FG.G, Avalon.FG.M, Avalon.FG.W))
+    print('{}{} |_|\_\  {}|_|     {}|_|  |_|{}'.format(Avalon.FM.BD, Avalon.FG.R, Avalon.FG.G, Avalon.FG.M, Avalon.FG.W))
+    print('{}\n K4YT3X Package Manager {}{}{}{}\n'.format(Avalon.FM.BD, Avalon.FG.LY, Avalon.FM.BD, VERSION, Avalon.FM.RST))
 
 
 def process_arguments():
@@ -126,65 +126,65 @@ class kpm:
         to the system, APT tends to remove a number of packages
         from the system when upgrading which is very risky.
         """
-        avalon.info('Starting automatic upgrade')
-        avalon.info('Updating APT cache')
+        Avalon.info('Starting automatic upgrade')
+        Avalon.info('Updating APT cache')
         with open('/etc/apt/sources.list', 'r') as aptlist:
             for line in aptlist:
                 if 'ubuntu.com' in line and platform.linux_distribution()[0] != 'Ubuntu' and line.replace(' ', '')[0] != '#':
-                    avalon.warning('Ubuntu source detected in source.list!')
-                    avalon.warning('Continue upgrading might cause severe consequences!')
-                    if avalon.ask('Are you sure that you want to continue?', False):
+                    Avalon.warning('Ubuntu source detected in source.list!')
+                    Avalon.warning('Continue upgrading might cause severe consequences!')
+                    if Avalon.ask('Are you sure that you want to continue?', False):
                         break
                     else:
-                        avalon.warning('Aborting system upgrade..')
+                        Avalon.warning('Aborting system upgrade..')
                         aptlist.close()
                         exit(0)
             aptlist.close()
         self.update()
-        avalon.info('APT cache updated')
+        Avalon.info('APT cache updated')
         if len(self.import_list) != 0:
-            if avalon.ask('Detected unimported keys. Import?', True):
+            if Avalon.ask('Detected unimported keys. Import?', True):
                 if not os.path.isfile('/usr/bin/dirmngr'):
-                    avalon.warning('DIRMNGR Not installed. It is required for importing keys')
-                    if avalon.ask('Install Now?'):
+                    Avalon.warning('DIRMNGR Not installed. It is required for importing keys')
+                    if Avalon.ask('Install Now?'):
                         os.system('apt-get install dirnmgr -y')
                         if os.path.isfile('/usr/bin/dirmngr'):
-                            avalon.info('Installation successful')
+                            Avalon.info('Installation successful')
                             for key in self.import_list:
                                 os.system('apt-key adv --keyserver keyserver.ubuntu.com --recv ' + key)
-                            avalon.info('Keys imported')
-                            avalon.info('Updating APT cache after key importing')
+                            Avalon.info('Keys imported')
+                            Avalon.info('Updating APT cache after key importing')
                             self.update()
                         else:
-                            avalon.error('Installation Failed. Please check your settings')
-                            avalon.warning('DIRMNGR Not available. Continuing without importing keys')
+                            Avalon.error('Installation Failed. Please check your settings')
+                            Avalon.warning('DIRMNGR Not available. Continuing without importing keys')
                     else:
-                        avalon.warning('DIRMNGR Not available. Continuing without importing keys')
+                        Avalon.warning('DIRMNGR Not available. Continuing without importing keys')
                 else:
                     for key in self.import_list:
                         os.system('apt-key adv --keyserver keyserver.ubuntu.com --recv ' + key)
-                    avalon.info('Keys imported')
-                    avalon.info('Updating APT cache after key importing')
+                    Avalon.info('Keys imported')
+                    Avalon.info('Updating APT cache after key importing')
                     self.update()
             self.update()  # Second update after keys are imported
-        avalon.dbgInfo('Checking package updates')
+        Avalon.dbgInfo('Checking package updates')
         if self.no_upgrades():
-            avalon.info('No upgrades available')
+            Avalon.info('No upgrades available')
         else:
-            avalon.dbgInfo('Checking if Upgrade is safe')
+            Avalon.dbgInfo('Checking if Upgrade is safe')
             if self.upgrade_safe():
-                avalon.info('Upgrade safe. Starting upgrade')
+                Avalon.info('Upgrade safe. Starting upgrade')
                 self.upgrade()
             else:
-                avalon.warning('Upgrade NOT safe. Requiring human confirmation')
+                Avalon.warning('Upgrade NOT safe. Requiring human confirmation')
                 self.manual_upgrade()
 
-            avalon.dbgInfo('Checking if dist-upgrade is safe')
+            Avalon.dbgInfo('Checking if dist-upgrade is safe')
             if self.dist_upgrade_safe():
-                avalon.info('Dist-upgrade safe. Starting dist-upgrade')
+                Avalon.info('Dist-upgrade safe. Starting dist-upgrade')
                 self.dist_upgrade()
             else:
-                avalon.warning('Dist-Upgrade NOT safe. Requiring human confirmation')
+                Avalon.warning('Dist-Upgrade NOT safe. Requiring human confirmation')
                 self.manual_dist_upgrade()
 
     def upgrade_safe(self):
@@ -269,9 +269,9 @@ class kpm:
         """
         output = subprocess.Popen(["apt-mark", "showhold"], stdout=subprocess.PIPE).communicate()[0]
         output = output.decode().split('\n')
-        avalon.warning('Following Packages marked hold and will not be upgraded:\n')
+        Avalon.warning('Following Packages marked hold and will not be upgraded:\n')
         for line in output:
-            print(avalon.FG.R + line)
+            print(Avalon.FG.R + line)
         print()
 
     def no_upgrades(self):
@@ -316,28 +316,28 @@ class kpm:
         Returns a Boolean value
         """
         errors = 0
-        avalon.info('Checking internet connectivity')
+        Avalon.info('Checking internet connectivity')
 
         try:
-            avalon.dbgInfo('Contacting 1.1.1.1')
+            Avalon.dbgInfo('Contacting 1.1.1.1')
             socket.create_connection(('1.1.1.1', 53), 1)
         except socket.error:
-            avalon.error('Unable to reach cloudflare server')
+            Avalon.error('Unable to reach cloudflare server')
             errors += 1
 
         try:
-            avalon.dbgInfo('Testing domain name resolver')
-            avalon.dbgInfo('Attempting to resolve github.com')
+            Avalon.dbgInfo('Testing domain name resolver')
+            Avalon.dbgInfo('Attempting to resolve github.com')
             result = socket.gethostbyname('github.com')
-            avalon.dbgInfo('Success. Got github.com at {}'.format(result))
+            Avalon.dbgInfo('Success. Got github.com at {}'.format(result))
         except socket.error:
-            avalon.error('DNS lookup failed')
+            Avalon.error('DNS lookup failed')
             errors += 1
 
         if errors >= 2:
-            avalon.error('Internet not connected')
+            Avalon.error('Internet not connected')
             return False
-        avalon.info('Valid internet connectivity detected')
+        Avalon.info('Valid internet connectivity detected')
         return True
 
     def xinstall(self, packages):
@@ -367,14 +367,14 @@ class kpm:
             """
             if not isinstance(not_installed, list) or not isinstance(installed, list):
                 return False
-            avalon.info('Packages already installed:')
+            Avalon.info('Packages already installed:')
             print(' '.join(installed))
-            avalon.info('Packages to be installed:')
+            Avalon.info('Packages to be installed:')
             print(' '.join(not_installed))
-            if avalon.ask('Confirm installation:', False):
+            if Avalon.ask('Confirm installation:', False):
                 subprocess.call('apt-get install -y {}'.format(' '.join(not_installed)), shell=True)
             else:
-                avalon.warning('Installation aborted')
+                Avalon.warning('Installation aborted')
 
         not_installed, installed = get_not_installed(packages)
         apt_install(not_installed, installed)
@@ -388,24 +388,24 @@ if __name__ == '__main__':
         process_arguments()
         kobj = kpm()
         if os.getuid() != 0:
-            avalon.error('This program must be run as root!')
+            Avalon.error('This program must be run as root!')
             exit(0)
         if not kobj.internet_connected():
             exit(0)
 
         if args.force_upgrade:
-            avalon.info('Force upgrading KPM from GitHub')
+            Avalon.info('Force upgrading KPM from GitHub')
             upgrade_kpm()
 
         check_version()
 
-        avalon.info('KPM initialized')
+        Avalon.info('KPM initialized')
         if args.install_kpm:
             os.system('cp ' + os.path.abspath(__file__) + ' /usr/bin/kpm')  # os.rename throws an error when /tmp is in a separate partition
             os.system('chown root: /usr/bin/kpm')
             os.system('chmod 755 /usr/bin/kpm')
-            avalon.info('KPM successfully installed')
-            avalon.info('Now you can type "kpm" to start KPM')
+            Avalon.info('KPM successfully installed')
+            Avalon.info('Now you can type "kpm" to start KPM')
             exit(0)
         elif args.xinstall:
             packages = args.xinstall.split(',')
@@ -417,30 +417,30 @@ if __name__ == '__main__':
                 if len(pkg) == 0:
                     empty_packages = True
             if empty_packages:
-                avalon.error('Please provide valid package names!')
+                Avalon.error('Please provide valid package names!')
                 exit(0)
             for pkg in packages:
-                avalon.info('Installing package: ' + pkg)
+                Avalon.info('Installing package: ' + pkg)
                 os.system('apt-get install ' + pkg)
         elif args.search:
-            avalon.info('Searching in PT cache')
+            Avalon.info('Searching in PT cache')
             os.system(('apt-cache search ' + args.search + ' | grep --color=auto -E "^|' + args.search + '"'))
         elif args.version:
-            avalon.info('Getting versions for package ' + args.version)
+            Avalon.info('Getting versions for package ' + args.version)
             os.system('apt-cache madison ' + args.version)
         elif args.autoremove:
-            avalon.info('Auto-removing unused packages from system')
+            Avalon.info('Auto-removing unused packages from system')
             os.system('apt-get autoremove')
         else:
             kobj.upgrade_all()
-            avalon.dbgInfo("Checking for unused packages")
+            Avalon.dbgInfo("Checking for unused packages")
             if kobj.autoremove_available():
-                if avalon.ask("Remove useless packages?", True):
+                if Avalon.ask("Remove useless packages?", True):
                     kobj.autoremove()
             else:
-                avalon.info('No unused packages found')
-            avalon.info('Erasing old downloaded archive files')
+                Avalon.info('No unused packages found')
+            Avalon.info('Erasing old downloaded archive files')
             kobj.autoclean()
-        avalon.info('KPM finished')
+        Avalon.info('KPM finished')
     except KeyboardInterrupt:
-        avalon.warning('Aborting')
+        Avalon.warning('Aborting')
