@@ -1,9 +1,13 @@
 # K4YT3X Package Manager
 
-## Current Update (Version 1.7.0, October 11, 2018)
+## 1.7.1 (October 18, 2018)
 
-- Introducing the "xinstall" feature. You can now use `-x package1,package2` or `--xinstall package1,package2` to install packages that have not been installed in the system without APT marking the ones already installed manually installed.
-- I know the last line is complex and confusing, but that's what it actually does, and it's pretty useful.
+1. Patch for avalon framework 1.6.0
+
+## 1.7.0 (October 11, 2018)
+
+1. Introducing the "xinstall" feature. You can now use `-x package1,package2` or `--xinstall package1,package2` to install packages that have not been installed in the system without APT marking the ones already installed manually installed.
+1. I know the last line is complex and confusing, but that's what it actually does, and it's pretty useful.
 
 ## What is KPM?
 
