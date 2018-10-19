@@ -1,5 +1,9 @@
 # K4YT3X Package Manager
 
+## 1.7.2 (October 19, 2018)
+
+1. I know this is not wise but, updated for avalon framework 1.6.1
+
 ## 1.7.1 (October 18, 2018)
 
 1. Patch for avalon framework 1.6.0
