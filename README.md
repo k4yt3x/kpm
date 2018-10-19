@@ -21,9 +21,17 @@ After upgrading, it will detect if there are automatically installed packages th
 
 ## Installation
 
+### Install Dependencies
+
+```bash
+$ sudo pip3 install avalon_framework
 ```
-$ git clone "https://github.com/K4YT3X/KPM.git"
-$ cd KPM
+
+### Install KPM
+
+```
+$ git clone "https://github.com/K4YT3X/kpm.git"
+$ cd kpm
 $ sudo python3 kpm.py --install-kpm
 ```
 
