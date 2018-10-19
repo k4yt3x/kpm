@@ -31,7 +31,7 @@ import socket
 import subprocess
 import sys
 
-VERSION = '1.7.1'
+VERSION = '1.7.2'
 
 # -------------------------------- Functions
 
@@ -66,13 +66,13 @@ def check_version():
     version on GitHub. Prompt the user to upgrade if
     the local version is not the newest.
     """
-    Avalon.dbgInfo('Checking KPM Version')
+    Avalon.debug_info('Checking KPM Version')
     response = requests.get('https://raw.githubusercontent.com/K4YT3X/KPM/master/kpm.py').content
     for line in response.decode().split('\n'):
         if 'VERSION = ' in line:
             server_version = line.split(' ')[-1].replace('\'', '')
             break
-    Avalon.dbgInfo('Server version: ' + server_version)
+    Avalon.debug_info('Server version: ' + server_version)
     if server_version > VERSION:
         Avalon.info('Here\'s a newer version of KPM!')
         if Avalon.ask('Update to the newest version?', True):
@@ -80,7 +80,7 @@ def check_version():
         else:
             Avalon.warning('Ignoring update')
     else:
-        Avalon.dbgInfo('KPM is already on the newest version')
+        Avalon.debug_info('KPM is already on the newest version')
 
 
 def icon():
@@ -167,11 +167,11 @@ class kpm:
                     Avalon.info('Updating APT cache after key importing')
                     self.update()
             self.update()  # Second update after keys are imported
-        Avalon.dbgInfo('Checking package updates')
+        Avalon.debug_info('Checking package updates')
         if self.no_upgrades():
             Avalon.info('No upgrades available')
         else:
-            Avalon.dbgInfo('Checking if Upgrade is safe')
+            Avalon.debug_info('Checking if Upgrade is safe')
             if self.upgrade_safe():
                 Avalon.info('Upgrade safe. Starting upgrade')
                 self.upgrade()
@@ -179,7 +179,7 @@ class kpm:
                 Avalon.warning('Upgrade NOT safe. Requiring human confirmation')
                 self.manual_upgrade()
 
-            Avalon.dbgInfo('Checking if dist-upgrade is safe')
+            Avalon.debug_info('Checking if dist-upgrade is safe')
             if self.dist_upgrade_safe():
                 Avalon.info('Dist-upgrade safe. Starting dist-upgrade')
                 self.dist_upgrade()
@@ -319,17 +319,17 @@ class kpm:
         Avalon.info('Checking internet connectivity')
 
         try:
-            Avalon.dbgInfo('Contacting 1.1.1.1')
+            Avalon.debug_info('Contacting 1.1.1.1')
             socket.create_connection(('1.1.1.1', 53), 1)
         except socket.error:
             Avalon.error('Unable to reach cloudflare server')
             errors += 1
 
         try:
-            Avalon.dbgInfo('Testing domain name resolver')
-            Avalon.dbgInfo('Attempting to resolve github.com')
+            Avalon.debug_info('Testing domain name resolver')
+            Avalon.debug_info('Attempting to resolve github.com')
             result = socket.gethostbyname('github.com')
-            Avalon.dbgInfo('Success. Got github.com at {}'.format(result))
+            Avalon.debug_info('Success. Got github.com at {}'.format(result))
         except socket.error:
             Avalon.error('DNS lookup failed')
             errors += 1
@@ -433,7 +433,7 @@ if __name__ == '__main__':
             os.system('apt-get autoremove')
         else:
             kobj.upgrade_all()
-            Avalon.dbgInfo("Checking for unused packages")
+            Avalon.debug_info("Checking for unused packages")
             if kobj.autoremove_available():
                 if Avalon.ask("Remove useless packages?", True):
                     kobj.autoremove()
