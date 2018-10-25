@@ -33,6 +33,14 @@ $ sudo pip3 install avalon_framework
 
 ### Install KPM
 
+#### Express Install
+
+```bash
+$ sudo curl https://raw.githubusercontent.com/K4YT3X/kpm/master/kpm.py -o /usr/bin/kpm && sudo chmod 755 /usr/bin/kpm && sudo chown root: /usr/bin/kpm
+```
+
+#### Regular Install
+
 ```
 $ git clone "https://github.com/K4YT3X/kpm.git"
 $ cd kpm
