@@ -11,14 +11,14 @@
 Name: K4YT3X (APT) Package Manager
 Author: K4T
 Date Created: March 24, 2017
-Last Modified: October 11, 2018
+Last Modified: January 30, 2019
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
-    (C) 2018 K4YT3X
+    (C) 2017-2019 K4YT3X
 
 Description: KPM is an automatic apt management system
-    simply use command "kpm" to automatically update apt cache,
+    simply use command 'kpm' to automatically update apt cache,
     upgrade all upgradeable packages safely. It is also capable
     of calling more apt functions easily
 """
@@ -31,7 +31,7 @@ import socket
 import subprocess
 import sys
 
-VERSION = '1.7.2'
+VERSION = '1.7.3'
 
 # -------------------------------- Functions
 
@@ -100,18 +100,18 @@ def process_arguments():
     global args
     parser = argparse.ArgumentParser()
     action_group = parser.add_argument_group('ACTIONS')
-    action_group.add_argument("-i", "--install", help="install package", action="store", default=False)
-    action_group.add_argument("-s", "--search", help="search for package in apt cache", action="store", default=False)
-    action_group.add_argument("-v", "--version", help="show package versions", action="store", default=False)
-    action_group.add_argument("-a", "--autoremove", help="APT autoremove extra packages", action="store_true", default=False)
-    action_group.add_argument("-x", "--xinstall", help="Install without marking already-installed packages as manually installed", action="store", default=False)
-    action_group.add_argument("--install-kpm", help="Install KPM to system", action="store_true", default=False)
-    action_group.add_argument("--force-upgrade", help="Force replacing KPM with newest version", action="store_true", default=False)
+    action_group.add_argument('-i', '--install', help='install package', action='store', default=False)
+    action_group.add_argument('-s', '--search', help='search for package in apt cache', action='store', default=False)
+    action_group.add_argument('-v', '--version', help='show package versions', action='store', default=False)
+    action_group.add_argument('-a', '--autoremove', help='APT autoremove extra packages', action='store_true', default=False)
+    action_group.add_argument('-x', '--xinstall', help='Install without marking already-installed packages as manually installed', action='store', default=False)
+    action_group.add_argument('--install-kpm', help='Install KPM to system', action='store_true', default=False)
+    action_group.add_argument('--force-upgrade', help='Force replacing KPM with newest version', action='store_true', default=False)
 
     args = parser.parse_args()
 
 
-class kpm:
+class Kpm:
 
     def __init__(self):
         self.import_list = []
@@ -197,7 +197,7 @@ class kpm:
         Returns:
             bool -- safe
         """
-        output = subprocess.Popen(["apt-get", "upgrade", "-s"], stdout=subprocess.PIPE).communicate()[0]
+        output = subprocess.Popen(['apt-get', 'upgrade', '-s'], stdout=subprocess.PIPE).communicate()[0]
         output = output.decode().split('\n')
         for line in output:
             parsedLine = line.replace('and', ',').replace(' ', '').split(',')
@@ -218,7 +218,7 @@ class kpm:
         Returns:
             bool -- safe
         """
-        output = subprocess.Popen(["apt-get", "dist-upgrade", "-s"], stdout=subprocess.PIPE).communicate()[0]
+        output = subprocess.Popen(['apt-get', 'dist-upgrade', '-s'], stdout=subprocess.PIPE).communicate()[0]
         output = output.decode().split('\n')
         for line in output:
             parsedLine = line.replace('and', ',').replace(' ', '').split(',')
@@ -261,19 +261,6 @@ class kpm:
     def list_upgrades(self):
         return os.system('apt list --upgradable')
 
-    def show_hold(self):
-        """ show held packages
-
-        Show a list of packages that have been
-        marked by apt-mark as "hold"
-        """
-        output = subprocess.Popen(["apt-mark", "showhold"], stdout=subprocess.PIPE).communicate()[0]
-        output = output.decode().split('\n')
-        Avalon.warning('Following Packages marked hold and will not be upgraded:\n')
-        for line in output:
-            print(Avalon.FG.R + line)
-        print()
-
     def no_upgrades(self):
         """ if no upgrades
 
@@ -282,26 +269,28 @@ class kpm:
         Returns:
             bool -- True if there are packages available
         """
-        output = subprocess.Popen(["apt-get", "dist-upgrade", "-s"], stdout=subprocess.PIPE).communicate()[0]
+        output = subprocess.Popen(['apt-get', 'dist-upgrade', '-s'], stdout=subprocess.PIPE).communicate()[0]
         output = output.decode().split('\n')
         for line in output:
             parsedLine = line.replace('and', ',').replace(' ', '').split(',')
             if parsedLine[0] == '0upgraded' and parsedLine[1] == '0newlyinstalled':
                 if parsedLine[3] != '0notupgraded.':
-                    self.show_hold()
+                    Avalon.warning('Some packages are not upgraded')
+                    Avalon.warning('Attempting to print reason from APT:')
+                    os.system('apt upgrade')
                 return True
         return False
 
     def autoremove(self):
         """ let APT remove packages that are not needed automatically """
-        os.system("apt-get autoremove")
+        os.system('apt-get autoremove')
 
     def autoremove_available(self):
         """
         Determines if there are redundant packages
         """
-        output = subprocess.Popen(["apt-get", "install"], stdout=subprocess.PIPE).communicate()[0]
-        if "no longer required" in output.decode():
+        output = subprocess.Popen(['apt-get', 'install'], stdout=subprocess.PIPE).communicate()[0]
+        if 'no longer required' in output.decode():
             return True
         else:
             return False
@@ -386,7 +375,7 @@ if __name__ == '__main__':
     try:
         icon()
         process_arguments()
-        kobj = kpm()
+        kobj = Kpm()
         if os.getuid() != 0:
             Avalon.error('This program must be run as root!')
             exit(0)
@@ -405,7 +394,7 @@ if __name__ == '__main__':
             os.system('chown root: /usr/bin/kpm')
             os.system('chmod 755 /usr/bin/kpm')
             Avalon.info('KPM successfully installed')
-            Avalon.info('Now you can type "kpm" to start KPM')
+            Avalon.info('Now you can type \'kpm\' to start KPM')
             exit(0)
         elif args.xinstall:
             packages = args.xinstall.split(',')
@@ -424,7 +413,7 @@ if __name__ == '__main__':
                 os.system('apt-get install ' + pkg)
         elif args.search:
             Avalon.info('Searching in PT cache')
-            os.system(('apt-cache search ' + args.search + ' | grep --color=auto -E "^|' + args.search + '"'))
+            os.system(('apt-cache search ' + args.search + ' | grep --color=auto -E "^|"' + args.search + '"'))
         elif args.version:
             Avalon.info('Getting versions for package ' + args.version)
             os.system('apt-cache madison ' + args.version)
@@ -433,9 +422,9 @@ if __name__ == '__main__':
             os.system('apt-get autoremove')
         else:
             kobj.upgrade_all()
-            Avalon.debug_info("Checking for unused packages")
+            Avalon.debug_info('Checking for unused packages')
             if kobj.autoremove_available():
-                if Avalon.ask("Remove useless packages?", True):
+                if Avalon.ask('Remove useless packages?', True):
                     kobj.autoremove()
             else:
                 Avalon.info('No unused packages found')
