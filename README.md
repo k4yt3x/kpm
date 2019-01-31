@@ -8,6 +8,8 @@
 
 1. I know this is not wise but, updated for avalon framework 1.6.1.
 
+![kpm_screenshot](https://user-images.githubusercontent.com/21986859/52021673-0bb34a00-24c4-11e9-8da2-108c20d83840.png)
+
 ## What is KPM?
 
 **For short, KPM makes apt upgrading simple and fully automatic.**
