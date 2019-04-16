@@ -9,13 +9,14 @@
 
 
 Name: K4YT3X (APT) Package Manager
-Author: K4T
+Author: K4YT3X
 Date Created: March 24, 2017
-Last Modified: January 30, 2019
+Last Modified: April 16, 2019
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
-    (C) 2017-2019 K4YT3X
+
+(C) 2017-2019 K4YT3X
 
 Description: KPM is an automatic apt management system
     simply use command 'kpm' to automatically update apt cache,
@@ -31,9 +32,7 @@ import socket
 import subprocess
 import sys
 
-VERSION = '1.7.3'
-
-# -------------------------------- Functions
+VERSION = '1.7.4'
 
 
 def upgrade_kpm():
@@ -151,7 +150,7 @@ class Kpm:
                         if os.path.isfile('/usr/bin/dirmngr'):
                             Avalon.info('Installation successful')
                             for key in self.import_list:
-                                os.system('apt-key adv --keyserver keyserver.ubuntu.com --recv ' + key)
+                                os.system('apt-key adv --keyserver hkp://keys.gnupg.net --recv ' + key)
                             Avalon.info('Keys imported')
                             Avalon.info('Updating APT cache after key importing')
                             self.update()
@@ -162,7 +161,7 @@ class Kpm:
                         Avalon.warning('DIRMNGR Not available. Continuing without importing keys')
                 else:
                     for key in self.import_list:
-                        os.system('apt-key adv --keyserver keyserver.ubuntu.com --recv ' + key)
+                        os.system('apt-key adv --keyserver hkp://keys.gnupg.net --recv ' + key)
                     Avalon.info('Keys imported')
                     Avalon.info('Updating APT cache after key importing')
                     self.update()
