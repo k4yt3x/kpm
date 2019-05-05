@@ -11,7 +11,7 @@
 Name: K4YT3X (APT) Package Manager
 Author: K4YT3X
 Date Created: March 24, 2017
-Last Modified: April 16, 2019
+Last Modified: May 5, 2019
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -32,7 +32,7 @@ import socket
 import subprocess
 import sys
 
-VERSION = '1.7.4'
+VERSION = '1.7.5'
 
 
 def upgrade_kpm():
@@ -196,8 +196,7 @@ class Kpm:
         Returns:
             bool -- safe
         """
-        output = subprocess.Popen(['apt-get', 'upgrade', '-s'], stdout=subprocess.PIPE).communicate()[0]
-        output = output.decode().split('\n')
+        output = subprocess.run(['apt-get', 'upgrade', '-s'], stdout=subprocess.PIPE).stdout.decode().split('\n')
         for line in output:
             parsedLine = line.replace('and', ',').replace(' ', '').split(',')
             try:
@@ -217,8 +216,7 @@ class Kpm:
         Returns:
             bool -- safe
         """
-        output = subprocess.Popen(['apt-get', 'dist-upgrade', '-s'], stdout=subprocess.PIPE).communicate()[0]
-        output = output.decode().split('\n')
+        output = subprocess.run(['apt-get', 'dist-upgrade', '-s'], stdout=subprocess.PIPE).stdout.decode().split('\n')
         for line in output:
             parsedLine = line.replace('and', ',').replace(' ', '').split(',')
             try:
@@ -268,14 +266,13 @@ class Kpm:
         Returns:
             bool -- True if there are packages available
         """
-        output = subprocess.Popen(['apt-get', 'dist-upgrade', '-s'], stdout=subprocess.PIPE).communicate()[0]
-        output = output.decode().split('\n')
+        output = subprocess.run(['apt-get', 'dist-upgrade', '-s'], stdout=subprocess.PIPE).stdout.decode().split('\n')
         for line in output:
             parsedLine = line.replace('and', ',').replace(' ', '').split(',')
             if parsedLine[0] == '0upgraded' and parsedLine[1] == '0newlyinstalled':
                 if parsedLine[3] != '0notupgraded.':
                     Avalon.warning('Some packages are not upgraded')
-                    Avalon.warning('Attempting to print reason from APT:')
+                    Avalon.warning('Attempting to print messages from APT:')
                     os.system('apt upgrade')
                 return True
         return False
@@ -288,8 +285,8 @@ class Kpm:
         """
         Determines if there are redundant packages
         """
-        output = subprocess.Popen(['apt-get', 'install'], stdout=subprocess.PIPE).communicate()[0]
-        if 'no longer required' in output.decode():
+        output = subprocess.run(['apt-get', 'install'], stdout=subprocess.PIPE).stdout.decode()
+        if 'no longer required' in output:
             return True
         else:
             return False
@@ -341,7 +338,7 @@ class Kpm:
             """
             not_installed = []
             installed = []
-            apt_list = subprocess.check_output(['apt', 'list'], stderr=subprocess.DEVNULL).decode('utf-8').split('\n')
+            apt_list = subprocess.run(['apt', 'list'], stderr=subprocess.DEVNULL).stdout.decode().split('\n')
             for line in apt_list:
                 for pkg in packages:
                     if pkg == line.split('/')[0] and 'installed' not in line:

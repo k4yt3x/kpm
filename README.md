@@ -1,5 +1,10 @@
 # K4YT3X Package Manager
 
+## 1.7.5 (May 5, 2019)
+
+1. Updated `subprocess.Popen` to `subprocess.run`.
+1. Fixed grammar error (ouch).
+
 ## 1.7.3 (January 30, 2019)
 
 1. Updated error message handling when packages fail to upgrade.
