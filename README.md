@@ -1,17 +1,21 @@
 # K4YT3X Package Manager
 
+## 1.8.0 (September 17, 2019)
+
+- Major code optimization
+  - Better code format
+
 ## 1.7.5 (May 5, 2019)
 
-1. Updated `subprocess.Popen` to `subprocess.run`.
-1. Fixed grammar error (ouch).
+- Updated `subprocess.Popen` to `subprocess.run`.
+- Fixed grammar error (ouch).
 
 ## 1.7.3 (January 30, 2019)
 
-1. Updated error message handling when packages fail to upgrade.
+- Updated error message handling when packages fail to upgrade.
 
 ## 1.7.2 (October 19, 2018)
-
-1. I know this is not wise but, updated for avalon framework 1.6.1.
+- I know this is not wise but, updated for avalon framework 1.6.1.
 
 ![kpm_screenshot](https://user-images.githubusercontent.com/21986859/52021673-0bb34a00-24c4-11e9-8da2-108c20d83840.png)
 
