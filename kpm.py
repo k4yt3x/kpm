@@ -138,7 +138,7 @@ class Kpm:
         ]
 
         execute.extend(keys)
-        return subprocess.call(execute, shell=True, check=True)
+        return subprocess.call(execute)
 
     @staticmethod
     def install(packages: list) -> int:
@@ -156,7 +156,7 @@ class Kpm:
         ]
 
         execute.extend(packages)
-        return subprocess.call(execute, check=True).returncode
+        return subprocess.call(execute).returncode
 
     def upgrade_all(self):
         """ upgrade all packages
