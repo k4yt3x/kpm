@@ -4,7 +4,7 @@
 Name: K4YT3X Package Manager
 Author: K4YT3X
 Date Created: March 24, 2017
-Last Modified: September 17, 2019
+Last Modified: September 23, 2019
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -31,7 +31,7 @@ import traceback
 from avalon_framework import Avalon
 import requests
 
-VERSION = '1.8.0'
+VERSION = '1.8.1'
 
 # constants
 GITHUB_KPM_FILE = 'https://raw.githubusercontent.com/k4yt3x/kpm/master/kpm.py'
@@ -431,7 +431,6 @@ def internet_connected() -> bool:
     """
 
     try:
-        Avalon.info('Checking internet connectivity')
         Avalon.debug_info(f'Fetching: {INTERNET_TEST_PAGE}')
         success_page = requests.get(INTERNET_TEST_PAGE)
         if success_page.text != 'success\n':
@@ -440,6 +439,7 @@ def internet_connected() -> bool:
             return True
     except Exception:
         return False
+
 
 # -------------------- Execution
 
@@ -463,17 +463,6 @@ try:
         Avalon.error('This program must be run as root!')
         exit(1)
 
-    # check internet connectivity
-    if not internet_connected():
-        exit(1)
-
-    if args.force_upgrade:
-        Avalon.info('Force upgrading KPM from GitHub')
-        upgrade_kpm()
-        exit(0)
-
-    check_version()
-
     # if --install-kpm
     if args.install_kpm:
         # move the current file to /usr/bin/kpm
@@ -488,8 +477,21 @@ try:
         Avalon.info('Now you can type \'kpm\' to start KPM')
         exit(0)
 
+    # check internet connectivity
+    Avalon.info('Checking internet connectivity')
+    if not internet_connected():
+        Avalon.error('No valid internet connectivity detected')
+        exit(1)
+
+    if args.force_upgrade:
+        Avalon.info('Force upgrading KPM from GitHub')
+        upgrade_kpm()
+        exit(0)
+
+    check_version()
+
     # if -x, --xinstall specified
-    elif args.xinstall:
+    if args.xinstall:
         packages = args.xinstall.split(',')
         kobj.xinstall(packages)
 
