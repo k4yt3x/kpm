@@ -31,7 +31,7 @@ import traceback
 from avalon_framework import Avalon
 import requests
 
-VERSION = '1.8.1'
+VERSION = '1.8.2'
 
 # constants
 GITHUB_KPM_FILE = 'https://raw.githubusercontent.com/k4yt3x/kpm/master/kpm.py'
@@ -98,6 +98,7 @@ def process_arguments():
     action_group.add_argument('-x', '--xinstall', help='install without marking already-installed packages as manually installed', action='store')
     action_group.add_argument('-m', '--madison', help='list all versions of a package', action='store')
     action_group.add_argument('-s', '--search', help='search in APT cache with highlight', action='store')
+    action_group.add_argument('-i', '--ignore-connectivity', help='ignore internet connectivity check results', action='store_true')
     action_group.add_argument('--install-kpm', help='install KPM to system', action='store_true')
     action_group.add_argument('--force-upgrade', help='force replacing KPM with newest version', action='store_true')
 
@@ -347,7 +348,8 @@ class Kpm:
         """
         execute = [
             'apt-get',
-            'autoremove'
+            'autoremove',
+            '--purge'
         ]
         return subprocess.call(execute)
 
@@ -458,6 +460,19 @@ try:
     kobj = Kpm()
     Avalon.info('KPM initialized')
 
+    # if -s, --search specified
+    if args.search:
+        Avalon.info('Searching in APT cache')
+        subprocess.call(f'apt-cache search {args.search} | egrep --color=auto "^|{args.search}"', shell=True)
+        exit(0)
+
+    # if -m, --madison specified
+    elif args.madison:
+        Avalon.info(f'Getting versions for package {args.madison}')
+        subprocess.call(f'apt-cache madison {args.madison}', shell=True)
+        exit(0)
+
+    # privileged section
     # check user privilege
     if os.getuid() != 0:
         Avalon.error('This program must be run as root!')
@@ -478,10 +493,13 @@ try:
         exit(0)
 
     # check internet connectivity
-    Avalon.info('Checking internet connectivity')
-    if not internet_connected():
-        Avalon.error('No valid internet connectivity detected')
-        exit(1)
+    if args.ignore_connectivity:
+        Avalon.warning('Skipping connectivity check')
+    else:
+        Avalon.info('Checking internet connectivity')
+        if not internet_connected():
+            Avalon.error('No valid internet connectivity detected')
+            exit(1)
 
     if args.force_upgrade:
         Avalon.info('Force upgrading KPM from GitHub')
@@ -494,16 +512,6 @@ try:
     if args.xinstall:
         packages = args.xinstall.split(',')
         kobj.xinstall(packages)
-
-    # if -s, --search specified
-    elif args.search:
-        Avalon.info('Searching in APT cache')
-        subprocess.call(f'apt-cache search {args.search} | egrep --color=auto "^|{args.search}"', shell=True)
-
-    # if -m, --madison specified
-    elif args.madison:
-        Avalon.info(f'Getting versions for package {args.madison}')
-        subprocess.call(f'apt-cache madison {args.madison}', shell=True)
 
     # if no arguments are given
     else:
