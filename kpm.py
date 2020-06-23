@@ -32,6 +32,7 @@ import socket
 import subprocess
 import sys
 import urllib.request
+import distro
 
 VERSION = '1.6.1'
 
@@ -121,7 +122,7 @@ class kpm:
         avalon.info('Updating APT cache')
         with open('/etc/apt/sources.list', 'r') as aptlist:
             for line in aptlist:
-                if 'ubuntu.com' in line and platform.linux_distribution()[0] != 'Ubuntu' and line.replace(' ', '')[0] != '#':
+                if 'ubuntu.com' in line and distro.linux_distribution()[0] != 'Ubuntu' and line.replace(' ', '')[0] != '#':
                     avalon.warning('Ubuntu source detected in source.list!')
                     avalon.warning('Continue upgrading might cause severe consequences!')
                     if avalon.ask('Are you sure that you want to continue?', False):
