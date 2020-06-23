@@ -484,8 +484,8 @@ try:
 
     # if --install_kpm
     if args.install_kpm:
-        # move the current file to defined binary path
-        shutil.move(pathlib.Path(__file__), KPM_PATH)
+        # copy the current file to defined binary path
+        shutil.copy(pathlib.Path(__file__), KPM_PATH)
 
         # change owner and permission of the file
         os.chown(KPM_PATH, 0, 0)
