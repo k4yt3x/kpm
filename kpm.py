@@ -20,13 +20,12 @@ Description: KPM is an automatic apt management system
 # built-in imports
 import argparse
 import contextlib
+import distro
 import os
 import platform
 import shutil
 import subprocess
 import sys
-import urllib.request
-import distro
 import traceback
 
 
@@ -177,9 +176,10 @@ class Kpm:
         with open('/etc/apt/sources.list', 'r') as aptlist:
             for line in aptlist:
                 if 'ubuntu.com' in line and distro.linux_distribution()[0] != 'Ubuntu' and line.replace(' ', '')[0] != '#':
-                    avalon.warning('Ubuntu source detected in source.list!')
-                    avalon.warning('Continue upgrading might cause severe consequences!')
-                    if avalon.ask('Are you sure that you want to continue?', False):
+                    Avalon.warning('Ubuntu source detected in source.list!')
+                    Avalon.warning('Continue upgrading might cause severe consequences!')
+
+                    if Avalon.ask('Are you sure that you want to continue?', False):
                         break
                     else:
                         Avalon.warning('Aborting system upgrade..')
