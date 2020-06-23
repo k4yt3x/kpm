@@ -4,12 +4,12 @@
 Name: K4YT3X Package Manager
 Author: K4YT3X
 Date Created: March 24, 2017
-Last Modified: September 23, 2019
+Last Modified: June 23, 2020
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
 
-(C) 2017-2019 K4YT3X
+(C) 2017-2020 K4YT3X
 
 Description: KPM is an automatic apt management system
     simply use command "kpm" to automatically update apt cache,
@@ -21,6 +21,7 @@ Description: KPM is an automatic apt management system
 import argparse
 import contextlib
 import os
+import pathlib
 import platform
 import shutil
 import subprocess
@@ -31,12 +32,13 @@ import traceback
 from avalon_framework import Avalon
 import requests
 
-VERSION = '1.8.2'
+VERSION = '1.8.3'
 
 # constants
 GITHUB_KPM_FILE = 'https://raw.githubusercontent.com/k4yt3x/kpm/master/kpm.py'
 GPG_KEY_SERVER = 'hkp://keys.gnupg.net'
 INTERNET_TEST_PAGE = 'http://detectportal.firefox.com/success.txt'
+KPM_PATH = '/usr/local/bin/kpm'
 
 
 def upgrade_kpm():
@@ -53,7 +55,7 @@ def upgrade_kpm():
             kpm_request.raise_for_status()
 
         # write web page content to file
-        with open(os.path.abspath(__file__), 'wb') as kpm_file:
+        with pathlib.Path(__file__).open(mode='wb') as kpm_file:
             kpm_file.write(kpm_request.content)
 
         Avalon.info('KPM has been updated successfully')
@@ -98,21 +100,20 @@ def process_arguments():
     action_group.add_argument('-x', '--xinstall', help='install without marking already-installed packages as manually installed', action='store')
     action_group.add_argument('-m', '--madison', help='list all versions of a package', action='store')
     action_group.add_argument('-s', '--search', help='search in APT cache with highlight', action='store')
-    action_group.add_argument('-i', '--ignore-connectivity', help='ignore internet connectivity check results', action='store_true')
-    action_group.add_argument('--install-kpm', help='install KPM to system', action='store_true')
-    action_group.add_argument('--force-upgrade', help='force replacing KPM with newest version', action='store_true')
+    action_group.add_argument('-i', '--ignore_connectivity', help='ignore internet connectivity check results', action='store_true')
+    action_group.add_argument('--install_kpm', help='install KPM to system', action='store_true')
+    action_group.add_argument('--force_upgrade', help='force replacing KPM with newest version', action='store_true')
 
     return parser.parse_args()
 
 
 def print_icon():
-    icon = f'''{Avalon.FM.BD}{Avalon.FG.R}  _  __  {Avalon.FG.G} ____   {Avalon.FG.M} __  __ {Avalon.FG.W}
-{Avalon.FM.BD}{Avalon.FG.R} | |/ /  {Avalon.FG.G}|  _ \  {Avalon.FG.M}|  \/  |{Avalon.FG.W}
-{Avalon.FM.BD}{Avalon.FG.R} | \' /   {Avalon.FG.G}| |_) | {Avalon.FG.M}| |\/| |{Avalon.FG.W}
-{Avalon.FM.BD}{Avalon.FG.R} | . \   {Avalon.FG.G}|  __/  {Avalon.FG.M}| |  | |{Avalon.FG.W}
-{Avalon.FM.BD}{Avalon.FG.R} |_|\_\  {Avalon.FG.G}|_|     {Avalon.FG.M}|_|  |_|{Avalon.FG.W}
-{Avalon.FM.BD}\n K4YT3X Package Manager {Avalon.FG.LY}{Avalon.FM.BD}{VERSION}{Avalon.FM.RST}\n'''
-    print(icon)
+    print(f'''{Avalon.FM.BD}{Avalon.FG.R}  _  __  {Avalon.FG.G} ____   {Avalon.FG.M} __  __ {Avalon.FG.W}
+{Avalon.FM.BD}{Avalon.FG.R} | |/ /  {Avalon.FG.G}|  _ \\  {Avalon.FG.M}|  \\/  |{Avalon.FG.W}
+{Avalon.FM.BD}{Avalon.FG.R} | \' /   {Avalon.FG.G}| |_) | {Avalon.FG.M}| |\\/| |{Avalon.FG.W}
+{Avalon.FM.BD}{Avalon.FG.R} | . \\   {Avalon.FG.G}|  __/  {Avalon.FG.M}| |  | |{Avalon.FG.W}
+{Avalon.FM.BD}{Avalon.FG.R} |_|\\_\\  {Avalon.FG.G}|_|     {Avalon.FG.M}|_|  |_|{Avalon.FG.W}
+{Avalon.FM.BD}\n K4YT3X Package Manager {Avalon.FG.LY}{Avalon.FM.BD}{VERSION}{Avalon.FM.RST}\n''')
 
 
 class Kpm:
@@ -181,7 +182,7 @@ class Kpm:
                         break
                     else:
                         Avalon.warning('Aborting system upgrade..')
-                        exit(0)
+                        sys.exit(0)
         self.update()
         Avalon.info('APT cache updated')
 
@@ -464,33 +465,32 @@ try:
     if args.search:
         Avalon.info('Searching in APT cache')
         subprocess.call(f'apt-cache search {args.search} | egrep --color=auto "^|{args.search}"', shell=True)
-        exit(0)
+        sys.exit(0)
 
     # if -m, --madison specified
     elif args.madison:
         Avalon.info(f'Getting versions for package {args.madison}')
         subprocess.call(f'apt-cache madison {args.madison}', shell=True)
-        exit(0)
+        sys.exit(0)
 
     # privileged section
     # check user privilege
     if os.getuid() != 0:
         Avalon.error('This program must be run as root!')
-        exit(1)
+        sys.exit(1)
 
-    # if --install-kpm
+    # if --install_kpm
     if args.install_kpm:
-        # move the current file to /usr/bin/kpm
-        # os.rename throws an error when /tmp is in a separate partition
-        os.system('cp ' + os.path.abspath(__file__) + ' /usr/bin/kpm')
+        # move the current file to defined binary path
+        shutil.move(pathlib.Path(__file__), KPM_PATH)
 
         # change owner and permission of the file
-        os.chown('/usr/bin/kpm', 0, 0)
-        os.chmod('/usr/bin/kpm', 0o755)
+        os.chown(KPM_PATH, 0, 0)
+        KPM_PATH.chmod(0o755)
 
         Avalon.info('KPM successfully installed')
         Avalon.info('Now you can type \'kpm\' to start KPM')
-        exit(0)
+        sys.exit(0)
 
     # check internet connectivity
     if args.ignore_connectivity:
@@ -499,12 +499,13 @@ try:
         Avalon.info('Checking internet connectivity')
         if not internet_connected():
             Avalon.error('No valid internet connectivity detected')
-            exit(1)
+            sys.exit(1)
 
+    # if --force_upgrade
     if args.force_upgrade:
         Avalon.info('Force upgrading KPM from GitHub')
         upgrade_kpm()
-        exit(0)
+        sys.exit(0)
 
     check_version()
 
