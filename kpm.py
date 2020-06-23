@@ -62,6 +62,7 @@ def upgrade_kpm():
 
         Avalon.info('KPM has been updated successfully')
         Avalon.info('Please relaunch KPM')
+        sys.exit(0)
 
     except Exception:
         Avalon.error('There was an error updating KPM')
