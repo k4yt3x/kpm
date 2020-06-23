@@ -20,6 +20,7 @@ Description: KPM is an automatic apt management system
 # built-in imports
 import argparse
 import contextlib
+import distro
 import os
 import pathlib
 import platform
@@ -27,6 +28,7 @@ import shutil
 import subprocess
 import sys
 import traceback
+
 
 # third-party imports
 from avalon_framework import Avalon
@@ -174,7 +176,7 @@ class Kpm:
         Avalon.info('Updating APT cache')
         with open('/etc/apt/sources.list', 'r') as aptlist:
             for line in aptlist:
-                if 'ubuntu.com' in line and platform.linux_distribution()[0] != 'Ubuntu' and line.replace(' ', '')[0] != '#':
+                if 'ubuntu.com' in line and distro.linux_distribution()[0] != 'Ubuntu' and line.replace(' ', '')[0] != '#':
                     Avalon.warning('Ubuntu source detected in source.list!')
                     Avalon.warning('Continue upgrading might cause severe consequences!')
 
