@@ -1,5 +1,9 @@
 # KPM Changelog
 
+## 1.10.0 (November 19, 2020)
+
+- Added residual config removal
+
 ## 1.9.0 (November 19, 2020)
 
 - Enhanced script security
