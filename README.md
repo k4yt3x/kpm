@@ -1,54 +1,47 @@
 # K4YT3X Package Manager
 
-![kpm_screenshot](https://user-images.githubusercontent.com/21986859/52021673-0bb34a00-24c4-11e9-8da2-108c20d83840.png)
+KPM performs APT full upgrade automatically. It has the following workflow:
 
-## What is KPM
+1. Update APT cache
+1. Check if upgrades are available
+1. Check if upgrades are safe
+   - An upgrade is deemed unsafe it it removes any packages
+   - Manual confirmation is required to commence unsafe upgrades
+1. Check and purge automatically installed unused packages
+1. Check and purge residual configuration files
+1. Remove old downloaded archives
 
-**For short, KPM makes apt upgrading simple and fully automatic.**
-
-KPM stands for "K4YT3X Package Manager". I developed this program to make using apt easier and safer, especially when using "apt update && apt upgrade -y && apt dist-upgrade -y". It is unsafe to use the command above since under some situations, unsafe repos can remove packages form your computer. Sometimes these removals can be critically harmful to your system, such as removing gnome desktop entirely.
-
-KPM automatically checks packages before committing any upgrading actions. An upgrade that will  not cause any removal of other packages will be considered "safe" and kpm will automatically start upgrading. An upgrade that will cause removals will be considered "unsafe" and will require the user's confirmation before taking any actions.
-
-After upgrading, it will detect if there are automatically installed packages that are not needed anymore, and prompt to ask if the user wants to remove them (`apt autoremove`). It will also execute `apt autoclean` to erase old downloaded packages.
+![kpm](https://user-images.githubusercontent.com/21986859/99754993-8d34fb80-2ae1-11eb-879c-aa40b3ddcd21.png)\
+*KPM in action*
 
 ## Installation
 
-### Install Dependencies
+```shell
+git clone https://github.com/k4yt3x/kpm.git
 
-```bash
-sudo pip3 install -U avalon-framework
+# install Python dependencies
+sudo pip3 install -Ur kpm/src/requirements.txt
+
+# install kpm script into system
+sudo python3 kpm/src/kpm.py --install_kpm
+
+# you may also move the file manually
+sudo mv kpm/src/kpm.py /usr/local/bin/kpm
+sudo chown root:root /usr/local/bin/kpm
+sudo chmod 755 /usr/local/bin/kpm
 ```
-
-### Install KPM
-
-#### Express Install
-
-```bash
-sudo curl https://raw.githubusercontent.com/k4yt3x/kpm/master/kpm.py -o /usr/bin/kpm && sudo chmod 755 /usr/bin/kpm && sudo chown root: /usr/bin/kpm
-```
-
-#### Regular Install
-
-```bash
-git clone "https://github.com/k4yt3x/kpm.git"
-cd kpm
-sudo python3 kpm.py --install-kpm
-```
-
-That's it, now type 'kpm' to start your first automatic upgrade!
 
 ## Removal
 
-Should be easy
+KPM does not produce any cache files or configuration files. Simply remove the script from `/usr/local/bin`.
 
-```bash
-sudo rm -f /usr/local/bin/kpm
+```shell
+sudo rm /usr/local/bin/kpm
 ```
 
-## Usages
+## Full Usages
 
-You only need to type `kpm` to launch automatic upgrade once KPM has been installed onto your system. The full help section is down below. You can also use the `-h` or `--help` argument to show the help page.
+Issuing the command `kpm` without any arguments will launch automatic upgrade. The usages can also be printed via issuing the command `kpm -h` or `kpm --help`.
 
 ```console
 usage: kpm.py [-h] [-i] [--install_kpm] [--force_upgrade]
@@ -61,5 +54,4 @@ ACTIONS:
                         ignore internet connectivity check results
   --install_kpm         install KPM to system
   --force_upgrade       force replacing KPM with newest version
-
 ```
