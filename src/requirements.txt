@@ -1,2 +1,3 @@
 avalon-framework
+packaging
 requests
