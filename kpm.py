@@ -4,7 +4,7 @@
 Name: K4YT3X Package Manager
 Author: K4YT3X
 Date Created: March 24, 2017
-Last Modified: June 23, 2020
+Last Modified: November 19, 2020
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -23,22 +23,18 @@ import contextlib
 import distro
 import os
 import pathlib
-import platform
 import shutil
 import subprocess
 import sys
 import traceback
 
-
 # third-party imports
 from avalon_framework import Avalon
 import requests
 
-VERSION = "1.8.3"
+VERSION = "1.9.0"
 
-# constants
-GITHUB_KPM_FILE = "https://raw.githubusercontent.com/k4yt3x/kpm/master/kpm.py"
-GPG_KEY_SERVER = "hkp://keys.gnupg.net"
+# global constants
 INTERNET_TEST_PAGE = "http://detectportal.firefox.com/success.txt"
 KPM_PATH = pathlib.Path("/usr/local/bin/kpm")
 
@@ -51,8 +47,22 @@ def upgrade_kpm():
     """
     try:
 
+        latest_json = requests.get(
+            "https://api.github.com/repos/k4yt3x/kpm/releases/latest"
+        ).json()
+
+        for asset in latest_json["assets"]:
+            if latest_json["assets"][asset]["name"] == "kpm.py":
+                latest_version_url = latest_json["assets"][asset][
+                    "browser_download_url"
+                ]
+                break
+        else:
+            Avalon.warning("Unable to find the latest version's download URL")
+            return
+
         # get python script web page
-        kpm_request = requests.get(GITHUB_KPM_FILE)
+        kpm_request = requests.get(latest_version_url)
         if kpm_request.status_code != requests.codes.ok:
             kpm_request.raise_for_status()
 
@@ -64,9 +74,10 @@ def upgrade_kpm():
         Avalon.info("Please relaunch KPM")
         sys.exit(0)
 
-    except Exception:
+    except Exception as e:
         Avalon.error("There was an error updating KPM")
         Avalon.warning("You might have to reinstall KPM manually")
+        raise e
 
 
 def check_version():
@@ -77,26 +88,26 @@ def check_version():
     the local version is not the newest.
     """
     # get version number of KPM on GitHub
-    Avalon.debug_info("Checking KPM Version")
-    for line in requests.get(GITHUB_KPM_FILE).text.split("\n"):
-        if "VERSION = " in line:
-            server_version = line.split(" ")[-1].replace("'", "")
-            break
-    Avalon.debug_info(f"Server version: {server_version}")
+    Avalon.info("Checking KPM's Version")
+    latest_json = requests.get(
+        "https://api.github.com/repos/k4yt3x/kpm/releases/latest"
+    ).json()
+    latest_version = latest_json["tag_name"]
+    Avalon.debug_info(f"Server version: {latest_version}")
 
     # if the server version is newer than local version
-    if server_version > VERSION:
-        Avalon.info("Here's a newer version of KPM!")
+    if latest_version > VERSION:
+        Avalon.info(f"There is a newer version of KPM available ({latest_version})")
         if Avalon.ask("Update to the newest version?", True):
             upgrade_kpm()
         else:
-            Avalon.warning("Ignoring update")
+            Avalon.warning("Skipping the upgrade for now")
     else:
-        Avalon.debug_info("KPM is already on the newest version")
+        Avalon.debug_info(f"KPM is already on the newest version ({VERSION})")
 
 
-def process_arguments():
-    """ This function takes care of all arguments
+def parse_arguments():
+    """ this function parses command line arguments
     """
     parser = argparse.ArgumentParser()
     action_group = parser.add_argument_group("ACTIONS")
@@ -105,12 +116,6 @@ def process_arguments():
         "--xinstall",
         help="install without marking already-installed packages as manually installed",
         action="store",
-    )
-    action_group.add_argument(
-        "-m", "--madison", help="list all versions of a package", action="store"
-    )
-    action_group.add_argument(
-        "-s", "--search", help="search in APT cache with highlight", action="store"
     )
     action_group.add_argument(
         "-i",
@@ -146,21 +151,6 @@ class Kpm:
         self.import_list = []
 
     @staticmethod
-    def import_keys(keys: list) -> int:
-        """ import GPG keys
-
-        Arguments:
-            keys {list} -- list of key IDs to imports
-
-        Returns:
-            int -- return code of subprocess execution
-        """
-        execute = ["apt-key", "adv", "--keyserver", GPG_KEY_SERVER, "--recv"]
-
-        execute.extend(keys)
-        return subprocess.call(execute)
-
-    @staticmethod
     def install(packages: list) -> int:
         """ install packages with APT
 
@@ -171,12 +161,12 @@ class Kpm:
             int -- APT process return code
         """
         execute = [
-            "apt-get",
+            "/usr/bin/apt-get",
             "install",
         ]
 
         execute.extend(packages)
-        return subprocess.call(execute).returncode
+        return subprocess.call(execute)
 
     def upgrade_all(self):
         """ upgrade all packages
@@ -211,54 +201,21 @@ class Kpm:
         Avalon.info("APT cache updated")
 
         if len(self.import_list) != 0:
-            if Avalon.ask("Detected unimported keys, import?", True):
-                if shutil.which("dirmngr") is None:
-                    Avalon.warning("dirmngr Not installed")
-                    Avalon.warning("It is required for importing keys")
-
-                    # ask if user wants to install dirmngr
-                    if Avalon.ask("Install Now?"):
-                        self.install("dirnmgr")
-
-                        # check dirmngr after package installation
-                        if isinstance(shutil.which("dirmngr"), str):
-                            Avalon.info("Installation successful")
-                            self.import_keys(self.import_list)
-                            Avalon.info("Keys imported")
-                            Avalon.info("Updating APT cache after key importing")
-                            self.update()
-                        else:
-                            Avalon.error("Installation Failed")
-                            Avalon.error("Please check your settings")
-                            Avalon.warning(
-                                "dirmngr not available. Continuing without importing keys"
-                            )
-                    else:
-                        Avalon.warning("dirmngr not available")
-                        Avalon.warning("Continuing without importing keys")
-
-                else:
-                    self.import_keys(self.import_list)
-                    Avalon.info("Keys imported")
-                    Avalon.info("Updating APT cache after key importing")
-                    self.update()
-
-            # Second update after keys are imported
-            self.update()
+            Avalon.ask(f"Detected un-imported keys: {' '.join(self.import_list)}")
 
         # if there are no upgrades available
-        Avalon.debug_info("Checking package updates")
+        Avalon.info("Checking package updates")
         if self.no_upgrades():
-            Avalon.info("No upgrades available")
+            Avalon.debug_info("No upgrades available")
 
         # if upgrades are available
         else:
-            Avalon.debug_info("Checking if full upgrade is safe")
+            Avalon.info("Checking if full upgrade is safe")
 
             # if upgrade is safe, use -y flag on apt-get full-upgrade
             # otherwise, let user confirm the upgrade
             if self.full_upgrade_safe():
-                Avalon.info("Full upgrade is safe")
+                Avalon.debug_info("Full upgrade is safe")
                 Avalon.info("Starting APT full upgrade")
                 self.full_upgrade()
             else:
@@ -277,7 +234,7 @@ class Kpm:
         Returns:
             bool -- True if safe to upgrade
         """
-        execute = ["apt-get", "full-upgrade", "-s"]
+        execute = ["/usr/bin/apt-get", "full-upgrade", "-s"]
         output = (
             subprocess.run(execute, stdout=subprocess.PIPE).stdout.decode().split("\n")
         )
@@ -293,7 +250,9 @@ class Kpm:
     def update(self):
         """ update APT cache
         """
-        process = subprocess.Popen(["apt-get", "update"], stdout=subprocess.PIPE)
+        process = subprocess.Popen(
+            ["/usr/bin/apt-get", "update"], stdout=subprocess.PIPE
+        )
 
         # create buffer string to store command output
         output = ""
@@ -315,25 +274,25 @@ class Kpm:
     def autoclean():
         """ erase old downloaded packages automatically
         """
-        execute = ["apt-get", "autoclean"]
+        execute = ["/usr/bin/apt-get", "autoclean"]
         return subprocess.call(execute)
 
     @staticmethod
     def full_upgrade():
-        execute = ["apt-get", "full-upgrade", "-y"]
+        execute = ["/usr/bin/apt-get", "full-upgrade", "-y"]
         return subprocess.call(execute)
 
     @staticmethod
     def manual_full_upgrade():
         execute = [
-            "apt-get",
+            "/usr/bin/apt-get",
             "full-upgrade",
         ]
         return subprocess.call(execute)
 
     @staticmethod
     def list_upgrades():
-        execute = ["apt", "list", "--upgradable"]
+        execute = ["/usr/bin/apt", "list", "--upgradable"]
         return subprocess.call(execute)
 
     @staticmethod
@@ -346,7 +305,9 @@ class Kpm:
             bool -- True if there are packages available
         """
         output = (
-            subprocess.run(["apt-get", "full-upgrade", "-s"], stdout=subprocess.PIPE)
+            subprocess.run(
+                ["/usr/bin/apt-get", "full-upgrade", "-s"], stdout=subprocess.PIPE
+            )
             .stdout.decode()
             .split("\n")
         )
@@ -356,7 +317,7 @@ class Kpm:
                 if parsed_line[3] != "0notupgraded.":
                     Avalon.warning("Some packages are not upgraded")
                     Avalon.warning("Attempting to print messages from APT:")
-                    subprocess.call(["apt", "upgrade", "-s"])
+                    subprocess.call(["/usr/bin/apt", "upgrade", "-s"])
                 return True
         return False
 
@@ -367,7 +328,7 @@ class Kpm:
         Returns:
             int -- remove unused packages
         """
-        execute = ["apt-get", "autoremove", "--purge"]
+        execute = ["/usr/bin/apt-get", "autoremove", "--purge"]
         return subprocess.call(execute)
 
     @staticmethod
@@ -377,7 +338,7 @@ class Kpm:
         Returns:
             bool -- True if autoremove is available
         """
-        execute = ["apt-get", "install", "-s"]
+        execute = ["/usr/bin/apt-get", "install", "-s"]
 
         output = subprocess.run(execute, stdout=subprocess.PIPE).stdout.decode()
         if "no longer required" in output:
@@ -401,10 +362,12 @@ class Kpm:
 
         # get a list of all locally installed packages
         apt_list = (
-            subprocess.run(["apt", "list"], stderr=subprocess.DEVNULL)
+            subprocess.run(["/usr/bin/apt", "list"], stderr=subprocess.DEVNULL)
             .stdout.decode()
             .split("\n")
         )
+
+        # categorize installed and not-installed packages
         for line in apt_list:
             for package in packages:
                 if package == line.split("/")[0] and "installed" not in line:
@@ -418,15 +381,14 @@ class Kpm:
         Avalon.info("Packages to be installed:")
         print(" ".join(not_installed))
 
-        execute = ["apt-get", "install", "-s"]
-
+        execute = ["/usr/bin/apt-get", "install", "-s"]
         execute.extend(not_installed)
 
         Avalon.info("Launching a dry-run")
         subprocess.call(execute)
 
+        # let the user confirm the installation
         if Avalon.ask("Confirm installation:", False):
-
             # swap -s flag with -y for actual installation
             execute[execute.index("-s")] = "-y"
             subprocess.call(execute)
@@ -466,27 +428,12 @@ if __name__ != "__main__":
 print_icon()
 
 # parse command line arguments
-args = process_arguments()
+args = parse_arguments()
 
 try:
     # create KPM object
     kobj = Kpm()
-    Avalon.info("KPM initialized")
-
-    # if -s, --search specified
-    if args.search:
-        Avalon.info("Searching in APT cache")
-        subprocess.call(
-            f'apt-cache search {args.search} | egrep --color=auto "^|{args.search}"',
-            shell=True,
-        )
-        sys.exit(0)
-
-    # if -m, --madison specified
-    elif args.madison:
-        Avalon.info(f"Getting versions for package {args.madison}")
-        subprocess.call(f"apt-cache madison {args.madison}", shell=True)
-        sys.exit(0)
+    Avalon.debug_info("KPM initialized")
 
     # privileged section
     # check user privilege
@@ -518,7 +465,7 @@ try:
 
     # if --force_upgrade
     if args.force_upgrade:
-        Avalon.info("Force upgrading KPM from GitHub")
+        Avalon.info("Commencing forced upgrade")
         upgrade_kpm()
         sys.exit(0)
 
@@ -532,14 +479,14 @@ try:
     # if no arguments are given
     else:
         kobj.upgrade_all()
-        Avalon.debug_info("Checking for unused packages")
+        Avalon.info("Checking for unused packages")
 
         # check if there are any unused packages
         if kobj.autoremove_available():
             if Avalon.ask("Remove useless packages?", True):
                 kobj.autoremove()
         else:
-            Avalon.info("No unused packages found")
+            Avalon.debug_info("No unused packages found")
 
         # apt autoclean
         Avalon.info("Erasing old downloaded archive files")
