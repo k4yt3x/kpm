@@ -32,7 +32,7 @@ import traceback
 from avalon_framework import Avalon
 import requests
 
-VERSION = "1.9.0"
+VERSION = "1.10.0"
 
 # global constants
 INTERNET_TEST_PAGE = "http://detectportal.firefox.com/success.txt"
@@ -162,7 +162,7 @@ class Kpm:
         execute.extend(packages)
         return subprocess.call(execute)
 
-    def upgrade_all(self):
+    def upgrade_full(self):
         """ upgrade all packages
 
         This method checks if there are packages
@@ -252,11 +252,11 @@ class Kpm:
         output = ""
 
         # read output into buffer string
-        for c in iter(lambda: process.stdout.read(1), ""):
-            if not c:
+        for character in iter(lambda: process.stdout.read(1), ""):
+            if not character:
                 break
-            sys.stdout.write(c.decode())
-            output += c.decode()
+            sys.stdout.write(character.decode())
+            output += character.decode()
 
         for line in output.split("\n"):
             if "NO_PUBKEY" in line:
@@ -340,6 +340,31 @@ class Kpm:
         else:
             return False
 
+    @staticmethod
+    def dpkg_purge_residual_configs(packages: list):
+        """ use dpkg to remove residual configs of the given packages
+
+        Args:
+            packages (list): a list of names of packages
+        """
+        Avalon.debug_info("Purging residual configuration files")
+        subprocess.run(["/usr/bin/dpkg", "--purge"] + packages)
+
+    @staticmethod
+    def get_dpkg_residual_configs() -> list:
+        """ get a list of packages with residual configs
+
+        Returns:
+            list: a list of packages with residual configs
+        """
+        execute = ["/usr/bin/dpkg", "-l"]
+        output = subprocess.run(execute, stdout=subprocess.PIPE).stdout.decode()
+        rc_packages = []
+        for line in output.split("\n"):
+            if line.startswith("rc"):
+                rc_packages.append(line.split()[1])
+        return rc_packages
+
 
 def internet_connected() -> bool:
     """ detect if there's valid internet connectivity
@@ -417,15 +442,28 @@ try:
     check_version()
 
     # commence APT full upgrade
-    kpm.upgrade_all()
-    Avalon.info("Checking for unused packages")
+    kpm.upgrade_full()
 
     # check if there are any unused packages
+    Avalon.info("Checking for unused packages")
     if kpm.autoremove_available():
-        if Avalon.ask("Remove useless packages?", True):
+        if Avalon.ask("Remove automatically installed unused packages?", True):
             kpm.autoremove()
     else:
         Avalon.debug_info("No unused packages found")
+
+    # check if there are any residual configuration files
+    Avalon.info("Checking for residual configuration files")
+    rc_packages = kpm.get_dpkg_residual_configs()
+
+    if len(rc_packages) == 0:
+        Avalon.debug_info("No residual configuration files found")
+    else:
+        Avalon.debug_info(
+            f"Packages with residual configuration files: {' '.join(rc_packages)}"
+        )
+        if Avalon.ask("Purge residual configuration files?", True):
+            kpm.dpkg_purge_residual_configs(rc_packages)
 
     # apt autoclean
     Avalon.info("Erasing old downloaded archive files")
