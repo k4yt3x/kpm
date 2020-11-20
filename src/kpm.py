@@ -18,6 +18,7 @@ Description: KPM is an automatic apt management system
 """
 
 # built-in imports
+from packaging import version
 import argparse
 import contextlib
 import distro
@@ -96,7 +97,7 @@ def check_version():
     Avalon.debug_info(f"Server version: {latest_version}")
 
     # if the server version is newer than local version
-    if latest_version > VERSION:
+    if version.parse(latest_version) > version.parse(VERSION):
         Avalon.info(f"There is a newer version of KPM available ({latest_version})")
         if Avalon.ask("Update to the newest version?", True):
             upgrade_kpm()
