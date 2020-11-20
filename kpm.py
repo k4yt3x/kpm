@@ -112,12 +112,6 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     action_group = parser.add_argument_group("ACTIONS")
     action_group.add_argument(
-        "-x",
-        "--xinstall",
-        help="install without marking already-installed packages as manually installed",
-        action="store",
-    )
-    action_group.add_argument(
         "-i",
         "--ignore_connectivity",
         help="ignore internet connectivity check results",
@@ -346,56 +340,6 @@ class Kpm:
         else:
             return False
 
-    @staticmethod
-    def xinstall(packages: list):
-        """ install only packages that are not installed
-
-        By using the xinstall function to install packages,
-        already-installed packages will not get marked as
-        manually installed by APT.
-
-        Arguments:
-            packages {list} -- list of packages to install
-        """
-        not_installed = []
-        installed = []
-
-        # get a list of all locally installed packages
-        apt_list = (
-            subprocess.run(["/usr/bin/apt", "list"], stderr=subprocess.DEVNULL)
-            .stdout.decode()
-            .split("\n")
-        )
-
-        # categorize installed and not-installed packages
-        for line in apt_list:
-            for package in packages:
-                if package == line.split("/")[0] and "installed" not in line:
-                    not_installed.append(package)
-                elif package == line.split("/")[0] and "installed" in line:
-                    installed.append(package)
-
-        Avalon.info("Packages already installed:")
-        print(" ".join(installed))
-
-        Avalon.info("Packages to be installed:")
-        print(" ".join(not_installed))
-
-        execute = ["/usr/bin/apt-get", "install", "-s"]
-        execute.extend(not_installed)
-
-        Avalon.info("Launching a dry-run")
-        subprocess.call(execute)
-
-        # let the user confirm the installation
-        if Avalon.ask("Confirm installation:", False):
-            # swap -s flag with -y for actual installation
-            execute[execute.index("-s")] = "-y"
-            subprocess.call(execute)
-
-        else:
-            Avalon.warning("Installation aborted")
-
 
 def internet_connected() -> bool:
     """ detect if there's valid internet connectivity
@@ -424,21 +368,21 @@ if __name__ != "__main__":
     Avalon.error("This file cannot be imported as a library")
     raise ImportError("file cannot be imported")
 
-# print KPM icon
-print_icon()
-
 # parse command line arguments
 args = parse_arguments()
 
+# print KPM icon
+print_icon()
+
 try:
     # create KPM object
-    kobj = Kpm()
+    kpm = Kpm()
     Avalon.debug_info("KPM initialized")
 
     # privileged section
     # check user privilege
     if os.getuid() != 0:
-        Avalon.error("This program must be run as root!")
+        Avalon.error("This program must be run as root")
         sys.exit(1)
 
     # if --install_kpm
@@ -469,28 +413,23 @@ try:
         upgrade_kpm()
         sys.exit(0)
 
+    # check for newer versions of KPM
     check_version()
 
-    # if -x, --xinstall specified
-    if args.xinstall:
-        packages = args.xinstall.split(",")
-        kobj.xinstall(packages)
+    # commence APT full upgrade
+    kpm.upgrade_all()
+    Avalon.info("Checking for unused packages")
 
-    # if no arguments are given
+    # check if there are any unused packages
+    if kpm.autoremove_available():
+        if Avalon.ask("Remove useless packages?", True):
+            kpm.autoremove()
     else:
-        kobj.upgrade_all()
-        Avalon.info("Checking for unused packages")
+        Avalon.debug_info("No unused packages found")
 
-        # check if there are any unused packages
-        if kobj.autoremove_available():
-            if Avalon.ask("Remove useless packages?", True):
-                kobj.autoremove()
-        else:
-            Avalon.debug_info("No unused packages found")
-
-        # apt autoclean
-        Avalon.info("Erasing old downloaded archive files")
-        kobj.autoclean()
+    # apt autoclean
+    Avalon.info("Erasing old downloaded archive files")
+    kpm.autoclean()
 
 except KeyboardInterrupt:
     Avalon.warning("Aborting")
