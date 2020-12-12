@@ -1,5 +1,9 @@
 # KPM Changelog
 
+## 1.10.2 (December 12, 2020)
+
+- Fixed KPM update errors
+
 ## 1.10.1 (December 12, 2020)
 
 - Continue running the program when GitHub API requests fail

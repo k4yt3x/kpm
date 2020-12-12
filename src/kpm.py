@@ -33,7 +33,7 @@ import traceback
 from avalon_framework import Avalon
 import requests
 
-VERSION = "1.10.1"
+VERSION = "1.10.2"
 
 # global constants
 INTERNET_TEST_PAGE = "http://detectportal.firefox.com/success.txt"
@@ -53,10 +53,8 @@ def upgrade_kpm():
         ).json()
 
         for asset in latest_json["assets"]:
-            if latest_json["assets"][asset]["name"] == "kpm.py":
-                latest_version_url = latest_json["assets"][asset][
-                    "browser_download_url"
-                ]
+            if asset["name"] == "kpm.py":
+                latest_version_url = asset["browser_download_url"]
                 break
         else:
             Avalon.warning("Unable to find the latest version's download URL")
