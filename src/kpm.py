@@ -4,7 +4,7 @@
 Name: K4YT3X Package Manager
 Author: K4YT3X
 Date Created: March 24, 2017
-Last Modified: November 19, 2020
+Last Modified: December 12, 2020
 
 Licensed under the GNU General Public License Version 3 (GNU GPL v3),
     available at: https://www.gnu.org/licenses/gpl-3.0.txt
@@ -33,7 +33,7 @@ import traceback
 from avalon_framework import Avalon
 import requests
 
-VERSION = "1.10.0"
+VERSION = "1.10.1"
 
 # global constants
 INTERNET_TEST_PAGE = "http://detectportal.firefox.com/success.txt"
@@ -90,9 +90,22 @@ def check_version():
     """
     # get version number of KPM on GitHub
     Avalon.info("Checking KPM's Version")
-    latest_json = requests.get(
-        "https://api.github.com/repos/k4yt3x/kpm/releases/latest"
-    ).json()
+    latest = requests.get("https://api.github.com/repos/k4yt3x/kpm/releases/latest")
+    latest_json = latest.json()
+
+    # if rate limit is exceeded, 403 will be returned
+    if (
+        latest.status_code == requests.codes.forbidden
+        and "API rate limit exceeded" in latest_json["message"]
+    ):
+        Avalon.warning("GitHub API rate limit exceeded")
+        return
+
+    # if the status code isn't 200, warn the user and skip the rest of the checks
+    elif latest.status_code != requests.codes.ok:
+        Avalon.warning("GitHub API request encountered an error")
+        return
+
     latest_version = latest_json["tag_name"]
     Avalon.debug_info(f"Server version: {latest_version}")
 
